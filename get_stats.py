@@ -5,12 +5,12 @@ import struct
 
 
 
+import sys
 
 
+filename = sys.argv[1]
 
-
-
-f = open("r1.txt", "rb")
+f = open(filename, "rb")
 data = f.read()
 f.close()
 
@@ -109,8 +109,6 @@ data_i += 4
 data_i += 4
 
 
-
-
 #playerlist
 print_hex(data_i)
 while data[data_i] == 0x16:
@@ -119,12 +117,18 @@ while data[data_i] == 0x16:
     print(p2)
 
     data_i += 1 #custom game nullbyte
-
+    
+    # if next == null, add another!
+    if data[data_i] == 0:
+        data_i += 1
     #playerlist unknown
     data_i += 4
 
+# for some reason there's an extra null byte after the replay saver (i think?)
+
+
 # GameStartRecord
-data_i += 1 # we're one behind?
+#data_i += 1 # we're one behind? (BECAUSE OF MY NAME LOL)
 assert(data[data_i] == 0x19)
 data_i +=1
 (size,) = struct.unpack('i', data[data_i:data_i+4])
@@ -146,6 +150,7 @@ class MMD_Entry:
     def __init__(self):
         pass
 
+quit()
 for n in range(kdrx_i, len(data) - len(kdrx), 1):
     if data[kdrx_i : kdrx_i + len(kdrx)] == kdrx:
         # get type
@@ -165,12 +170,11 @@ for n in range(kdrx_i, len(data) - len(kdrx), 1):
         value_i = key_i + size + 1
         value = data[value_i : value_i + 4]
         
-        print(type_b, key_b, value)
+        #print(type_b, key_b, value)
 
         mmd_entries += [kdrx_i, type_b, key_b]
 
     kdrx_i += 1
 
     
-
-
+# OK, the players in the playerlist is in order,the only thing i'm looking for now is the heroes. which can be read from blocks???.... id rather w3mmd.
