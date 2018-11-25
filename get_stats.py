@@ -1,6 +1,6 @@
 
 
-
+import struct
 
 
 
@@ -123,10 +123,54 @@ while data[data_i] == 0x16:
     #playerlist unknown
     data_i += 4
 
-# if next == 16, it's a player
-# if it's 19, we're done.
+# GameStartRecord
+data_i += 1 # we're one behind?
+assert(data[data_i] == 0x19)
+data_i +=1
+(size,) = struct.unpack('i', data[data_i:data_i+4])
 
+# Doesn't seem to follow the w3g format after 19.
 
+# try to jump down to endstats w3mmd:
+# think i should just check how ghost++ does it xD
 
+# find next kdr.x(null)
+mmd_entries = []
+kdrx = b'kdr.x\x00'
+kdrx_i = data_i
+mmd_data = b'Data\x00'
+mmd_global = b'Global'
+mmd_player_nr = 0
+
+class MMD_Entry:
+    def __init__(self):
+        pass
+
+for n in range(kdrx_i, len(data) - len(kdrx), 1):
+    if data[kdrx_i : kdrx_i + len(kdrx)] == kdrx:
+        # get type
+        type_i = kdrx_i + len(kdrx)
+        size = 0
+        while data[type_i + size] != 0:
+           size += 1 
+        
+        type_b = data[type_i : type_i + size] 
+
+        key_i = type_i + len(type_b) + 1
+        size = 0
+        while data[key_i + size] != 0:
+            size += 1
+        key_b = data[key_i : key_i + size] 
+
+        value_i = key_i + size + 1
+        value = data[value_i : value_i + 4]
+        
+        print(type_b, key_b, value)
+
+        mmd_entries += [kdrx_i, type_b, key_b]
+
+    kdrx_i += 1
+
+    
 
 
