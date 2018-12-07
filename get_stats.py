@@ -146,11 +146,7 @@ mmd_data = b'Data\x00'
 mmd_global = b'Global'
 mmd_player_nr = 0
 
-class MMD_Entry:
-    def __init__(self):
-        pass
 
-quit()
 for n in range(kdrx_i, len(data) - len(kdrx), 1):
     if data[kdrx_i : kdrx_i + len(kdrx)] == kdrx:
         # get type
@@ -170,11 +166,11 @@ for n in range(kdrx_i, len(data) - len(kdrx), 1):
         value_i = key_i + size + 1
         value = data[value_i : value_i + 4]
         
-        #print(type_b, key_b, value)
-
+        print(type_b, key_b, value)
+        if key_b == b'GameStart':
+            pass #quit()
         mmd_entries += [kdrx_i, type_b, key_b]
 
     kdrx_i += 1
 
     
-# OK, the players in the playerlist is in order,the only thing i'm looking for now is the heroes. which can be read from blocks???.... id rather w3mmd.

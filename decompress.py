@@ -67,6 +67,6 @@ while True:
     print(block_i, '/', len(data))
     
     if block_i >= len(data):
-        print("reached end of data")
+        print("reached end of data. Saved to ", str(name[0:-3]) + "txt")
         break
 
