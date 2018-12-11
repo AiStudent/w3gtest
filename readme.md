@@ -9,7 +9,7 @@ Example steps:
 python3 decompress.py r1.w3g
 ```
 
-##### Parses the players from the first header, reads w3mmd data and save output to file.
+##### Parses the players from the first header, reads w3mmd data and saves output to file.
 
 ```
 python3 get_stats.py r1.txt > extracted_w3mmd.txt
