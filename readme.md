@@ -1,5 +1,5 @@
 
-#### Testing how to decompress and parse w3mmd stats from warcraft 3 dota replays.
+#### Testing how to decompress and parse w3mmd stats from warcraft 3 dota replays with python 3.7.
 
 Example steps:
 
