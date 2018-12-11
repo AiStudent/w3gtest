@@ -32,3 +32,9 @@ Key "8_4"    -> Item 5
 Key "8_5"    -> Item 6
 Key "id"        -> ID (1-5 for sentinel, 6-10 for scourge, accurate after using -sp and/or -switch)
 ```
+##### And winner + game duration
+```
+b'Global' b'Winner' b'\x02\x00\x00\x00'
+b'Global' b'm' b'2\x00\x00\x00'
+b'Global' b's' b'\x14\x00\x00\x00'
+```
