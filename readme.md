@@ -1,8 +1,7 @@
 
-This is written using python3.7
+#### Testing how to decompress and parse w3mmd stats from warcraft 3 dota replays.
 
 Example steps:
-
 
 ##### Decompress any replay file into a .txt file (r1.txt in example below):
 
