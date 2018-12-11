@@ -9,11 +9,17 @@ Example steps:
 python3 decompress.py r1.w3g
 ```
 
-##### Parses the players from the first header, reads w3mmd data and saves output to file.
+##### Parses the player names from the first header, reads w3mmd data and then saves the output to another .txt file.
 
 ```
 python3 get_stats.py r1.txt > extracted_w3mmd.txt
 ```
+
+warcraft 3 meta map data (w3mmd) blocks are in the form of:
+
+type, key and value. 
+
+The types are either "Global", "Data" or a single number, representing a player.
 
 ##### Last in a dota replay there is data for each player:
 ```
@@ -32,6 +38,11 @@ Key "8_4"    -> Item 5
 Key "8_5"    -> Item 6
 Key "id"        -> ID (1-5 for sentinel, 6-10 for scourge, accurate after using -sp and/or -switch)
 ```
+
+For example, player blue got 11 kills in the game extracted above.
+
+```b'1' b'1' b'\x0b\x00\x00\x00'```
+
 ##### And winner + game duration
 ```
 b'Global' b'Winner' b'\x02\x00\x00\x00'
