@@ -41,9 +41,9 @@ Key "8_5"    -> Item 6
 Key "id"        -> ID (1-5 for sentinel, 6-10 for scourge, accurate after using -sp and/or -switch)
 ```
 
-For example, player blue got 11 kills in the game extracted above.
+For example, player blue got 7 deaths in the game extracted above.
 
-```b'1' b'1' b'\x0b\x00\x00\x00'```
+```b'1' b'2' b'\x07\x00\x00\x00'```
 
 ##### And winner + game duration
 ```
