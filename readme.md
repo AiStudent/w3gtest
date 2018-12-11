@@ -15,9 +15,11 @@ python3 decompress.py r1.w3g
 python3 get_stats.py r1.txt > extracted_w3mmd.txt
 ```
 
-warcraft 3 meta map data (w3mmd) blocks are in the form of:
+##### The w3mmd format
 
-type, key and value. 
+Warcraft 3 meta map data (w3mmd) blocks are in the form of:
+
+Type, key and value. 
 
 The types are either "Global", "Data" or a single number, representing a player.
 
