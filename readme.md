@@ -4,16 +4,17 @@ This is written using python3.7
 Example steps:
 
 
-##### Decompress any replay file:
+##### Decompress any replay file into a .txt file (r1.txt in example below):
 
-
+```
 python3 decompress.py r1.w3g
+```
 
+##### Parses the players from the first header, reads w3mmd data and save output to file.
 
-##### Parses players from header, reads w3mmd data and writes to file.
-
-
+```
 python3 get_stats.py r1.txt > extracted_w3mmd.txt
+```
 
 ##### Last in a dota replay there is data for each player:
 ```
