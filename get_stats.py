@@ -1,10 +1,6 @@
 
 
 import struct
-
-
-
-
 import sys
 
 

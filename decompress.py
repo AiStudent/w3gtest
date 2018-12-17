@@ -4,11 +4,6 @@ import struct
 import sys
 
 
-name = sys.argv[1]
-f = open(name, "rb")
-data = f.read()
-print(len(data))
-
 class FirstHeader:
     def __init__(self, data):
         (
@@ -38,35 +33,40 @@ class Block:
             self.size_decompressed,
             self.unknown_checksum,
         ) = struct.unpack('hhi', data[0:8])
+        
+    def decompress(self, data):
+        self.data = data
+        z = zlib.decompressobj()
+        data = z.decompress(self.data)
+        return data
 
-        #self.compressed_data = data[3:]
 
-    def __str__(self):
-        return "" + str(self.size_compressed) + "\n" + str(self.size_decompressed) + "\n"
+def decompress_replay(data):
+    first_header = FirstHeader(data[0x1c:0x30])
+    sub_header = SubHeader(data[0x30:0x44])
+    
+    decompressed_data = b''
+    block_i = 0x44
+    n = 0
 
-first_header = FirstHeader(data[0x1c:0x30])
-sub_header = SubHeader(data[0x30:0x44])
+    while block_i < len(data):
+        n+=1
+        block = Block(data[block_i : block_i+8])
+        decompressed_data += block.decompress(data[block_i+8 : block_i+8+block.size_compressed])
+        block_i += 8 + block.size_compressed
 
-block_i = 0x44
-n = 0
-while True:
-    n+=1
-    b1 = Block(data[block_i : block_i+8])
-    data_i = block_i + 8
-    d1 = data[data_i : data_i+b1.size_compressed]
-    block_i = data_i + b1.size_compressed
+    return decompressed_data
 
-    z = zlib.decompressobj()
-    du1 = z.decompress(d1)
+if __name__ == '__main__':
+    name = sys.argv[1]
+    f = open(name, "rb")
+    data = f.read()
+    f.close()
+    
+    data = decompress_replay(data)
 
-    f = open(name[0:-3] + "txt", "ab")
-    f.write(du1)
+    f = open(name[0:-3] + "txt", "wb")
+    f.write(data)
     f.close()
 
-    print(n, "blocks parsed..")
-    print(block_i, '/', len(data))
-    
-    if block_i >= len(data):
-        print("reached end of data. Saved to ", str(name[0:-3]) + "txt")
-        break
-
+   
