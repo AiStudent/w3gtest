@@ -1,172 +1,103 @@
 
-
-import struct
 import sys
-
-
-filename = sys.argv[1]
-
-f = open(filename, "rb")
-data = f.read()
-f.close()
-
-class PlayerRecord:
-    def __init__(self, record_id, player_id, player_name):
-        self.record_id = record_id
-        self.player_id = player_id
-        self.player_name = player_name
-
-    def __str__(self):
-        return str(self.player_id) + ", " + self.player_name
 
 def byte_to_int(b):
     return int.from_bytes(b, byteorder='little')
 
 
-def get_next_player_record(data, data_i=0):
-    record_id = data[data_i : data_i+1]
-    player_id = byte_to_int(data[data_i+1 : data_i+2])
-    data_i += 2
-
-    player_name = ""
-    while data[data_i] != 0:
-        
-        player_name += chr(data[data_i])
-        data_i += 1
-
-    data_i += 2 # null terminated + additional data
+def parse_string(data, start = 0):
+    index = start
+    while data[index] != 0:
+        index += 1
     
-    block_size = data_i
-    player = PlayerRecord(record_id, player_id, player_name) 
-    return player, block_size
+    end = index
+    return data[start:end], end-start+1
 
-
-def get_first_player_record(data):
-    return get_next_player_record(data, data_i=4)
-
-
-data_i = 0
-
-player, data_i = get_first_player_record(data[data_i:])
-
-data_i += 1 # custom game nullbyte
-
-#gamename
-def parse_text(data):
-    size = 0
-    text = ""
-    while data[size] != 0:
-        text += chr(data[size])
-        size += 1
-
-    size += 1
-    return text, size
-
-
-gamename, size = parse_text(data[data_i:])
-print(gamename)
-data_i += size
-
-# Work on 4.3, encoded string next (really wierd stuff copypasta)
-def gamestat_string(data):
-    decoded = ""
-    mask = 0
-    pos = 0
-    dpos= 0
-
-    while data[pos] != 0:
-        if pos % 8 == 0:
-            mask = data[pos]
+class PlayerRecord:
+    def __init__(self, data, start = 0, customgame = True):
+        self.record_id = data[start]
+        self.player_id = data[start+1]
+        self.name, size = parse_string(data, start+2) 
+        self.additional_data = data[start + 2 + size]
+        self.size = 2 + size + 1
+        if customgame:
+            #extra null byte
+            self.size += 1    
         else:
-            if (mask & 0x1 << (pos%8)) == 0:
-                decoded += chr(data[pos] - 1)
-            else:
-                decoded += chr(data[pos])
+            #runtime + race
+            self.size += 8
+        
+        #sometimes extra nullbyte, only if it's the player?
+        if data[start + self.size] == 0:
+            self.size +=1
 
-        pos += 1
+    def __str__(self):
+        return str((self.record_id, self.player_id, self.name, hex(self.additional_data)))
 
-    size = pos + 1
-    return decoded, size
-
-def print_hex(a):
-    print(format(a, '02x'))
-
-data_i += 1
-gamestat_string, size = gamestat_string(data[data_i:])
-data_i += size
-
-#hardcoded 24 by bots
-data_i += 4
-
-#game_type
-data_i += 4
-
-#languageID
-data_i += 4
-
-
-#playerlist
-print_hex(data_i)
-while data[data_i] == 0x16:
-    p2, size = get_next_player_record(data[data_i:])
-    data_i += size
-    print(p2)
-
-    data_i += 1 #custom game nullbyte
+def parse_players(data):
     
-    # if next == null, add another!
-    if data[data_i] == 0:
-        data_i += 1
-    #playerlist unknown
-    data_i += 4
+    # Start up items:
+    index = 0x44 + 4
+    hostplayer = PlayerRecord(data, index) 
+    index += hostplayer.size
+   
+    gamename, size = parse_string(data, index)
+    index += size
 
-# for some reason there's an extra null byte after the replay saver (i think?)
+    index += 1 # nullbyte
+    
+    encoded_string, size = parse_string(data, index)
+    index += size
 
+    index += 4 #allocating player count, only for lobby? used to be 24 for bots.
+    index += 4 #gametype
+    index += 4 #languageID
+    
+    #Player list
+    players = [hostplayer]
+    while data[index] == 0x16:
+        player = PlayerRecord(data, index)
+        index += player.size
+        players += [player]
+        index += 4 # some reoccuring bytes
+    
+    #GameStartRecord (ignoring)
+    assert data[index] == 0x19
 
-# GameStartRecord
-#data_i += 1 # we're one behind? (BECAUSE OF MY NAME LOL)
-assert(data[data_i] == 0x19)
-data_i +=1
-(size,) = struct.unpack('i', data[data_i:data_i+4])
+    return players
 
-# Doesn't seem to follow the w3g format after 19.
+def parse_w3mmd(data, index = 0):
+    w3mmd_data = []
+    while index < len(data):
+        index = data.find(b'kdr.x\x00', index)
+        if index == -1:
+            break
+        else:
+            index += len(b'kdr.x\00')
 
-# try to jump down to endstats w3mmd:
-# think i should just check how ghost++ does it xD
+        w3mmd_type, size = parse_string(data, index)
+        index += size
+        w3mmd_key, size = parse_string(data, index)
+        index += size
+        w3mmd_value = data[index:index+4]
+        index += 4
+       
+        w3mmd_data += [(w3mmd_type, w3mmd_key, w3mmd_value)]
 
-# find next kdr.x(null)
-mmd_entries = []
-kdrx = b'kdr.x\x00'
-kdrx_i = data_i
-mmd_data = b'Data\x00'
-mmd_global = b'Global'
-mmd_player_nr = 0
+    return w3mmd_data
 
+if __name__ == '__main__':
+    filename = sys.argv[1]
+    f = open(filename, "rb")
+    data = f.read()
+    f.close()
 
-for n in range(kdrx_i, len(data) - len(kdrx), 1):
-    if data[kdrx_i : kdrx_i + len(kdrx)] == kdrx:
-        # get type
-        type_i = kdrx_i + len(kdrx)
-        size = 0
-        while data[type_i + size] != 0:
-           size += 1 
-        
-        type_b = data[type_i : type_i + size] 
+    players = parse_players(data)
+    for player in players:
+        print(player)
+   
+    w3mmd_data = parse_w3mmd(data)
 
-        key_i = type_i + len(type_b) + 1
-        size = 0
-        while data[key_i + size] != 0:
-            size += 1
-        key_b = data[key_i : key_i + size] 
-
-        value_i = key_i + size + 1
-        value = data[value_i : value_i + 4]
-        
-        print(type_b, key_b, value)
-        if key_b == b'GameStart':
-            pass #quit()
-        mmd_entries += [kdrx_i, type_b, key_b]
-
-    kdrx_i += 1
-
+    for w3mmd in w3mmd_data:
+        print(w3mmd)
     

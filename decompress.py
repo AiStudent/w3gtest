@@ -63,7 +63,7 @@ if __name__ == '__main__':
     data = f.read()
     f.close()
     
-    data = decompress_replay(data)
+    data = data[:0x44] + decompress_replay(data)
 
     f = open(name[0:-3] + "txt", "wb")
     f.write(data)
