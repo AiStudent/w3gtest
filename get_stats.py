@@ -17,7 +17,8 @@ class PlayerRecord:
     def __init__(self, data, start = 0, customgame = True):
         self.record_id = data[start]
         self.player_id = data[start+1]
-        self.name, size = parse_string(data, start+2) 
+        self.name, size = parse_string(data, start+2)
+        self.name = self.name.decode('utf-8')
         self.additional_data = data[start + 2 + size]
         self.size = 2 + size + 1
         if customgame:
