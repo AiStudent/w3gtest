@@ -1,5 +1,5 @@
 
-from get_stats import parse_players, parse_w3mmd
+from w3gtest.get_stats import parse_players, parse_w3mmd
 
 
 class DotaPlayer:
@@ -27,7 +27,7 @@ class DotaPlayer:
 
     def get_values(self):
         return (
-                self.player_id,
+                #self.player_id,
                 self.name,
                 self.player_id_end,
                 self.team,
@@ -125,22 +125,27 @@ def get_ending_statistics_indexes(w3mmd_data):
     
     return start, end
 
+def parse_players_and_stats(data):
+    players = parse_players(data)
+    w3mmd_data = parse_w3mmd(data) 
+    dota_players = [DotaPlayer(player) for player in players]    
+    dota_players = set_dota_player_values(dota_players, w3mmd_data)
+
+    return dota_players
+
+def dota_players_to_str_format(dota_players):
+    string = ""
+    for player in dota_players:
+        string += str(player.get_values()) + '\n'
+    return string 
+
 if __name__ == '__main__':
     f = open('r1.txt', mode='rb')
-    replay = f.read()
+    data = f.read()
     f.close()
 
-    players = parse_players(replay)
-    w3mmd_data = parse_w3mmd(replay)
-   
-    dota_players = [DotaPlayer(player) for player in players]
-    
-    dota_players = set_dota_player_values(dota_players, w3mmd_data)
-    
-    for player in dota_players:
-        for value in player.get_values():
-            print(value, end=' ')
-        print()
-        
+    dota_players = parse_players_and_stats(data)
+
+    print(dota_players_to_str_format(dota_players)) 
 
     

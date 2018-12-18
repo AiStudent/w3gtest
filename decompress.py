@@ -41,7 +41,7 @@ class Block:
         return data
 
 
-def decompress_replay(data):
+def decompress(data):
     first_header = FirstHeader(data[0x1c:0x30])
     sub_header = SubHeader(data[0x30:0x44])
     
@@ -57,13 +57,16 @@ def decompress_replay(data):
 
     return decompressed_data
 
+def decompress_replay(data):
+    return data[:0x44] + decompress(data)
+
 if __name__ == '__main__':
     name = sys.argv[1]
     f = open(name, "rb")
     data = f.read()
     f.close()
     
-    data = data[:0x44] + decompress_replay(data)
+    data = decompress_replay(data)
 
     f = open(name[0:-3] + "txt", "wb")
     f.write(data)
