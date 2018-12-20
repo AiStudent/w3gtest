@@ -1,5 +1,5 @@
 
-from w3gtest.get_stats import parse_players, parse_w3mmd
+from get_stats import parse_players, parse_w3mmd
 
 
 class DotaPlayer:
