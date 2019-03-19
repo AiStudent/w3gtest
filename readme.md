@@ -52,5 +52,5 @@ b'Global' b'm' b'2\x00\x00\x00'
 b'Global' b's' b'\x14\x00\x00\x00'
 ```
 
-##### For normal maps one can parse the leave player blocks instead for winners.
+##### For normal maps one can parse the leave player blocks instead to get winners.
 http://w3g.deepnode.de/files/w3g_format.txt
