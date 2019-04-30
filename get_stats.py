@@ -20,7 +20,8 @@ class PlayerRecord:
         self.name, size = parse_string(data, start+2)
         self.name = self.name.decode('utf-8')
         self.additional_data = data[start + 2 + size]
-        self.size = 2 + size + 1
+        self.size = 2 + size + 1 + self.additional_data
+        """
         if customgame:
             #extra null byte
             self.size += 1    
@@ -31,6 +32,7 @@ class PlayerRecord:
         #sometimes extra nullbyte, only if it's the player?
         if data[start + self.size] == 0:
             self.size +=1
+        """
 
     def __str__(self):
         return str((self.record_id, self.player_id, self.name, hex(self.additional_data)))
@@ -61,7 +63,7 @@ def parse_players(data):
         index += player.size
         players += [player]
         index += 4 # some reoccuring bytes
-    
+   
     #GameStartRecord (ignoring)
     assert data[index] == 0x19
 
@@ -92,13 +94,13 @@ if __name__ == '__main__':
     f = open(filename, "rb")
     data = f.read()
     f.close()
-
+    print("players:")
     players = parse_players(data)
     for player in players:
         print(player)
    
     w3mmd_data = parse_w3mmd(data)
-
+    print("w3mmd:")
     for w3mmd in w3mmd_data:
         print(w3mmd)
     
