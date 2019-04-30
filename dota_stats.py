@@ -27,7 +27,7 @@ class DotaPlayer:
 
     def get_values(self):
         return (
-                #self.player_id,
+                self.player_id,
                 self.name,
                 self.player_id_end,
                 self.team,
@@ -49,10 +49,9 @@ class DotaPlayer:
 def b2i(data):
     return int.from_bytes(data, byteorder='little')
 
-def set_dota_player_values(dota_players, w3mmd_data):
-    start, end = get_ending_statistics_indexes(w3mmd_data)
+def set_dota_player_values(dota_players, w3mmd_data, start, end):
     
-    for index in range(start, end, 1):
+    for index in range(start, end+1, 1):
         w3mmd = w3mmd_data[index] 
         player_id_value = int(w3mmd[0].decode('utf-8'))
         key = w3mmd[1].decode('utf-8')
@@ -102,19 +101,11 @@ def set_dota_player_values(dota_players, w3mmd_data):
     return dota_players
 
 
-def get_ending_statistics_indexes(w3mmd_data):
+def get_ending_stats_indexes(w3mmd_data, globals_start):
     
     #get global backwards, check if winner
-    index = len(w3mmd_data) - 1
-    while index >= 0:
-        w3mmd = w3mmd_data[index]
-        if w3mmd[0] == b'Global' and w3mmd[1] == b'Winner':
-            end = index
-            break
-
-        index -= 1
-
-    index = end - 1
+    end = globals_start - 1
+    index = end
     while index >= 0:
         w3mmd = w3mmd_data[index]
         if not w3mmd[0].decode('utf-8').isnumeric():
@@ -123,29 +114,50 @@ def get_ending_statistics_indexes(w3mmd_data):
 
         index -= 1
     
-    return start, end
+    return start, globals_start - 1
 
-def parse_players_and_stats(data):
-    players = parse_players(data)
-    w3mmd_data = parse_w3mmd(data) 
-    dota_players = [DotaPlayer(player) for player in players]    
-    dota_players = set_dota_player_values(dota_players, w3mmd_data)
-
-    return dota_players
-
+def get_dota_w3mmd_stats(data):
+    w3mmd_data = parse_w3mmd(data)
+    globals_start, globals_end = get_globals_indexes(w3mmd_data)
+    stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
+    winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
+    
+    dota_players = [DotaPlayer(player) for player in parse_players(data)]
+    set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
+    
+    return dota_players, winner, mins, secs 
+    
 def dota_players_to_str_format(dota_players):
     string = ""
     for player in dota_players:
         string += str(player.get_values()) + '\n'
     return string 
 
+def get_globals_indexes(w3mmd_data):
+    for index in range(1, len(w3mmd_data)):
+        w3mmd_entry = w3mmd_data[-index]
+        if w3mmd_entry[0] == b'Global':
+            end = len(w3mmd_data) - index
+            start = end - 2
+            return start, end
+    return None
+
+def get_winner_and_time(w3mmd_data, globals_start):
+    winner = w3mmd_data[globals_start][2]
+    mins = w3mmd_data[globals_start+1][2]
+    secs = w3mmd_data[globals_start+2][2]
+    return winner, mins, secs
+
 if __name__ == '__main__':
     f = open('r1.txt', mode='rb')
     data = f.read()
     f.close()
 
-    dota_players = parse_players_and_stats(data)
+    dota_players, winner, mins, secs = get_dota_w3mmd_stats(data)
 
-    print(dota_players_to_str_format(dota_players)) 
+    print(winner, mins, secs)
+    for dota_player in dota_players:
+        
+        print(dota_player.get_values())
 
     
