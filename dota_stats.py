@@ -2,7 +2,8 @@
 from get_stats import parse_players, parse_w3mmd
 
 class NotCompleteGame(Exception):
-    pass
+    def __init__(self, nr):
+        self.nr_globals = nr
 
 class DotaPlayer:
     def __init__(self, player):
@@ -136,6 +137,10 @@ def dota_players_to_str_format(dota_players):
     return string 
 
 def get_globals_indexes(w3mmd_data):
+    nr_globals = count_nr_of_globals(w3mmd_data)
+    if nr_globals != 3:
+        raise NotCompleteGame(nr_globals)
+
     for index in range(1, len(w3mmd_data)):
         w3mmd_entry = w3mmd_data[-index]
         if w3mmd_entry[0] == b'Global':
@@ -143,13 +148,20 @@ def get_globals_indexes(w3mmd_data):
             start = end - 2
             return start, end
     
-    raise NotCompleteGame
+    assert(False)
 
 def get_winner_and_time(w3mmd_data, globals_start):
     winner = w3mmd_data[globals_start][2]
     mins = w3mmd_data[globals_start+1][2]
     secs = w3mmd_data[globals_start+2][2]
     return b2i(winner), b2i(mins), b2i(secs)
+
+def count_nr_of_globals(w3mmd_data):
+    counter = 0
+    for w3mmd_entry in w3mmd_data:
+        if w3mmd_entry[0] == b'Global':
+            counter += 1
+    return counter
 
 import sys
 if __name__ == '__main__':
@@ -165,10 +177,12 @@ if __name__ == '__main__':
     #print("fuck it ;D ")
     
     w3mmd_data = parse_w3mmd(data)
+    print(get_dota_w3mmd_stats(data))
     
-    globals_start, globals_end = get_globals_indexes(w3mmd_data)
-    stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
-    winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
+    #print(count_nr_of_globals(w3mmd_data))
+    #globals_start, globals_end = get_globals_indexes(w3mmd_data)
+    #stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
+    #winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
     
     #dota_players = [DotaPlayer(player) for player in parse_players(data)]
     #set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
