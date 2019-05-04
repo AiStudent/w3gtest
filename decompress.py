@@ -3,6 +3,8 @@ import zlib
 import struct
 import sys
 
+class CouldNotDecompress(Exception):
+    pass
 
 class FirstHeader:
     def __init__(self, data):
@@ -42,20 +44,23 @@ class Block:
 
 
 def decompress(data):
-    first_header = FirstHeader(data[0x1c:0x30])
-    sub_header = SubHeader(data[0x30:0x44])
-    
-    decompressed_data = b''
-    block_i = 0x44
-    n = 0
+    try:
+        first_header = FirstHeader(data[0x1c:0x30])
+        sub_header = SubHeader(data[0x30:0x44])
+        
+        decompressed_data = b''
+        block_i = 0x44
+        n = 0
 
-    while block_i < len(data):
-        n+=1
-        block = Block(data[block_i : block_i+8])
-        decompressed_data += block.decompress(data[block_i+8 : block_i+8+block.size_compressed])
-        block_i += 8 + block.size_compressed
+        while block_i < len(data):
+            n+=1
+            block = Block(data[block_i : block_i+8])
+            decompressed_data += block.decompress(data[block_i+8 : block_i+8+block.size_compressed])
+            block_i += 8 + block.size_compressed
 
-    return decompressed_data
+        return decompressed_data
+    except:
+        raise CouldNotDecompress
 
 def decompress_replay(data):
     return data[:0x44] + decompress(data)

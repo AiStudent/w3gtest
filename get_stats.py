@@ -94,11 +94,18 @@ if __name__ == '__main__':
     f = open(filename, "rb")
     data = f.read()
     f.close()
+    
+
+    
     print("players:")
     players = parse_players(data)
     for player in players:
         print(player)
-   
+  
+    # parse packets preferbly
+
+    
+
     w3mmd_data = parse_w3mmd(data)
     print("w3mmd:")
     for w3mmd in w3mmd_data:

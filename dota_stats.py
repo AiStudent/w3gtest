@@ -11,8 +11,8 @@ class DotaPlayer:
         self.player_id = player.player_id #matters at all? will leave it out since its meaning is uncertain. The players list is ordered accordingly from blue to last player.
         self.kills = None
         self.deaths = None
-        self.creep_kills = None
-        self.creep_denies = None
+        self.cskills = None
+        self.csdenies = None
         self.assists = None
         self.current_gold = None
         self.neutral_kills = None
@@ -36,8 +36,8 @@ class DotaPlayer:
                 self.team,
                 self.kills,
                 self.deaths,
-                self.creep_kills,
-                self.creep_denies,
+                self.cskills,
+                self.csdenies,
                 self.assists,
                 self.current_gold,
                 self.neutral_kills,
@@ -69,9 +69,9 @@ def set_dota_player_values(dota_players, w3mmd_data, start, end):
         elif key == '2':
             dota_player.deaths = b2i(value)
         elif key == '3':
-            dota_player.creep_kills = b2i(value)
+            dota_player.cskills = b2i(value)
         elif key == '4':
-            dota_player.creep_denies = b2i(value)
+            dota_player.csdenies = b2i(value)
         elif key == '5':
             dota_player.assists = b2i(value)
         elif key == '6':
