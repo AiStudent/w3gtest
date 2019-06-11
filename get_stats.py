@@ -89,6 +89,25 @@ def parse_w3mmd(data, index = 0):
 
     return w3mmd_data
 
+def parse_civw3mmd(data, index=0):
+    w3mmd_data = []
+    while index < len(data):
+        index = data.find(b'kMMD.', index)
+        if index == -1:
+            break
+        else:
+            index += len(b'kMMD.')
+        w3mmd_type, size = parse_string(data, index)
+        index += size
+        w3mmd_key, size = parse_string(data, index)
+        index += size
+        w3mmd_value, size = parse_string(data, index)
+        index += size
+
+        w3mmd_data += [(w3mmd_key.decode('utf-8'), w3mmd_value.decode('utf-8'))]
+
+    return w3mmd_data
+
 if __name__ == '__main__':
     filename = sys.argv[1]
     f = open(filename, "rb")
@@ -97,17 +116,18 @@ if __name__ == '__main__':
     
 
     
-    print("players:")
-    players = parse_players(data)
-    for player in players:
-        print(player)
+    #print("players:")
+    #players = parse_players(data)
+    #for player in players:
+    #    print(player)
   
     # parse packets preferbly
 
     
 
-    w3mmd_data = parse_w3mmd(data)
+    w3mmd_data = parse_civw3mmd(data)
     print("w3mmd:")
     for w3mmd in w3mmd_data:
-        print(w3mmd)
-    
+        print(w3mmd[0], end = '\t\t')
+        print(w3mmd[1])
+
