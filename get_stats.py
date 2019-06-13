@@ -125,9 +125,9 @@ if __name__ == '__main__':
 
     
 
-    w3mmd_data = parse_civw3mmd(data)
+    w3mmd_data = parse_w3mmd(data)
     print("w3mmd:")
     for w3mmd in w3mmd_data:
-        print(w3mmd[0], end = '\t\t')
-        print(w3mmd[1])
+        #print(w3mmd[0], end = '\t\t')
+        print(w3mmd)
 

@@ -53,6 +53,7 @@ def decompress(data):
         n = 0
 
         while block_i < len(data):
+            #print(block_i,'/', len(data))
             n+=1
             block = Block(data[block_i : block_i+8])
             decompressed_data += block.decompress(data[block_i+8 : block_i+8+block.size_compressed])

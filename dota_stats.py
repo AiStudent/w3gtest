@@ -22,6 +22,7 @@ class DotaPlayer:
         self.item4 = None
         self.item5 = None
         self.item6 = None
+        self.hero = None
         self.player_id_end = None
         self.team = None 
 
@@ -103,15 +104,19 @@ def set_dota_player_values(dota_players, w3mmd_data, start, end):
             dota_player.item5 = value
         elif key == '8_5':
             dota_player.item6 = value
+        elif key == '9':
+            dota_player.hero = value
         elif key == 'id':
             player_id_end = b2i(value)
             if player_id_end < 6:
                 team = 'sentinel'
             else:
                 team = 'scourge'
-            
+                   
             dota_player.player_id_end = player_id_end
             dota_player.team = team
+        else:
+            raise Exception("Not recognized key:", key)
 
     return dota_players
 
@@ -199,13 +204,16 @@ if __name__ == '__main__':
     #print(get_dota_w3mmd_stats(data))
     
     #print(count_nr_of_globals(w3mmd_data))
-    #globals_start, globals_end = get_globals_indexes(w3mmd_data)
-    #stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
-    #winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
+    globals_start, globals_end = get_globals_indexes(w3mmd_data)
+    stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
+    winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
     
     dota_players = [DotaPlayer(player) for player in parse_players(data)]
-    #set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
-    
-    #for player in dota_players:
-    #    print(player.get_values())
+    set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
+   
+    for w3mmd in w3mmd_data[stats_start:stats_end+1]:
+        print(w3mmd)
+    #quit()
+    for player in dota_players:
+        print(player.get_values())
 
