@@ -48,6 +48,19 @@ class DotaPlayer:
                 self.item5,
                 self.item6
                 )
+    
+    def get_values_limited(self):
+         return (
+                self.name,
+                self.team,
+                self.kills,
+                self.deaths,
+                self.cskills,
+                self.csdenies,
+                self.assists,
+                self.current_gold,
+                self.neutral_kills
+                )
 
 def b2i(data):
     return int.from_bytes(data, byteorder='little')
@@ -133,6 +146,12 @@ def get_dota_w3mmd_stats(data):
 def dota_players_to_str_format(dota_players):
     string = ""
     for player in dota_players:
+        string += str((player.name, player.kills, player.deaths, player.assists)) + '\n'
+    return string 
+
+def dota_players_to_str_format_limited(dota_players):
+    string = ""
+    for player in dota_players:
         string += str(player.get_values()) + '\n'
     return string 
 
@@ -177,14 +196,14 @@ if __name__ == '__main__':
     #print("fuck it ;D ")
     
     w3mmd_data = parse_w3mmd(data)
-    print(get_dota_w3mmd_stats(data))
+    #print(get_dota_w3mmd_stats(data))
     
     #print(count_nr_of_globals(w3mmd_data))
     #globals_start, globals_end = get_globals_indexes(w3mmd_data)
     #stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
     #winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
     
-    #dota_players = [DotaPlayer(player) for player in parse_players(data)]
+    dota_players = [DotaPlayer(player) for player in parse_players(data)]
     #set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
     
     #for player in dota_players:
