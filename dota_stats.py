@@ -142,8 +142,9 @@ def get_dota_w3mmd_stats(data):
     stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
 
     winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
-    
-    dota_players = [DotaPlayer(player) for player in parse_players(data)]
+
+    players, observers = parse_players(data)
+    dota_players = [DotaPlayer(player) for player in players]
     set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
     
     return dota_players, winner, mins, secs 
