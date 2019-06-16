@@ -189,7 +189,9 @@ def count_nr_of_globals(w3mmd_data):
 
 import sys
 if __name__ == '__main__':
-    f = open(sys.argv[1], mode='rb')
+    #filename = sys.argv[1]
+    filename = 'LastReplay_CKwin.txt'
+    f = open(filename, mode='rb')
     data = f.read()
     f.close()
     #try: 
@@ -202,17 +204,31 @@ if __name__ == '__main__':
     
     w3mmd_data = parse_w3mmd(data)
     #print(get_dota_w3mmd_stats(data))
-    
+    #for w3mmd in w3mmd_data:
+        #print(w3mmd)
+    #quit()
+
     #print(count_nr_of_globals(w3mmd_data))
     globals_start, globals_end = get_globals_indexes(w3mmd_data)
     stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
     winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
-    
-    dota_players = [DotaPlayer(player) for player in parse_players(data)]
+
+    players, observers = parse_players(data)
+    print('players')
+    for player in players:
+        print(player)
+
+    print('obs')
+    for obs in observers:
+        print(obs)
+
+    #quit()
+
+    dota_players = [DotaPlayer(player) for player in players]
     set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
    
-    for w3mmd in w3mmd_data[stats_start:stats_end+1]:
-        print(w3mmd)
+    #for w3mmd in w3mmd_data[stats_start:stats_end+1]:
+        #print(w3mmd)
     #quit()
     for player in dota_players:
         print(player.get_values())

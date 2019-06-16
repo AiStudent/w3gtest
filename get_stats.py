@@ -35,7 +35,9 @@ class PlayerRecord:
         """
 
     def __str__(self):
-        return str((self.record_id, self.player_id, self.name, hex(self.additional_data)))
+        return str((#self.record_id,
+                    self.player_id, self.name  #, hex(self.additional_data)
+        ))
 
 def parse_players(data):
     
@@ -67,7 +69,65 @@ def parse_players(data):
     #GameStartRecord (ignoring)
     assert data[index] == 0x19
 
-    return players
+    slotrecords, index = parse_gamestartrecord(data, index)
+
+    observers = []
+
+    # Filtering out observers
+    for slotrecord in slotrecords:
+        if slotrecord[3] == 24:
+            for player in players:
+                if player.player_id == slotrecord[0]:
+                    players.remove(player)
+                    observers += [player]
+
+    return players, observers
+
+
+def parse_gamestartrecord(data, index=0):
+    assert data[index] == 0x19
+    index += 1
+    length = byte_to_int(data[index:index+2])
+    index += 2
+    nr_of_slotrecords = data[index]
+    index += 1
+
+    slotrecords = []
+    for n in range(nr_of_slotrecords):
+        pid = data[index]
+        index += 1
+        index += 1 #map DL status
+        slotstatus = ['empty', 'closed', 'used'][data[index]]
+        index += 1
+        computer_player_flag = ['human', 'computer'][data[index]]
+        index += 1
+        team_number = data[index]
+        index += 1
+        color = data[index]
+        index += 1
+        player_race = data[index]
+        index += 1
+        comp_ai_strength = data[index]
+        index += 1
+        player_handicap = data[index]
+        index += 1
+        slotrecord = [pid, slotstatus, computer_player_flag,
+                      team_number, color, player_race,
+                      comp_ai_strength, player_handicap]
+        slotrecords += [slotrecord]
+
+
+    #index += 4 #rest stuff
+    #index += 9
+    random_seed = data[index:index+4]
+    index += 4
+    select_mode = data[index]
+    index += 1
+    start_spot_count = data[index]
+    index += 1
+    assert data[index] == 0x1a  # start of replay data
+    return slotrecords, index
+
 
 def parse_w3mmd(data, index = 0):
     w3mmd_data = []
@@ -109,25 +169,32 @@ def parse_civw3mmd(data, index=0):
     return w3mmd_data
 
 if __name__ == '__main__':
-    filename = sys.argv[1]
+    #filename = sys.argv[1]
+    filename = 'LastReplay_CKwin.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()
     
 
-    
-    #print("players:")
-    #players = parse_players(data)
-    #for player in players:
-    #    print(player)
-  
+
+    players, observers = parse_players(data)
+
+    #quit()
+    print('players')
+    for player in players:
+        print(player)
+    print()
+    print('observers')
+    for observer in observers:
+        print(observer)
     # parse packets preferbly
 
     
 
-    w3mmd_data = parse_w3mmd(data)
-    print("w3mmd:")
-    for w3mmd in w3mmd_data:
+    #w3mmd_data = parse_w3mmd(data)
+    #print("w3mmd:")
+    #for w3mmd in w3mmd_data:
         #print(w3mmd[0], end = '\t\t')
-        print(w3mmd)
+        #print(w3mmd)
+        #pass
 
