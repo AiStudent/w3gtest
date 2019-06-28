@@ -120,10 +120,13 @@ def parse_gamestartrecord(data, index=0):
     #index += 4 #rest stuff
     #index += 9
     random_seed = data[index:index+4]
+    print(byte_to_int(random_seed))
     index += 4
     select_mode = data[index]
+    print(hex(select_mode))
     index += 1
     start_spot_count = data[index]
+    print(hex(start_spot_count))
     index += 1
     assert data[index] == 0x1a  # start of replay data
     return slotrecords, index
@@ -169,8 +172,8 @@ def parse_civw3mmd(data, index=0):
     return w3mmd_data
 
 if __name__ == '__main__':
-    #filename = sys.argv[1]
-    filename = 'LastReplay_CKwin.txt'
+    filename = sys.argv[1]
+    #filename = 'LastReplay_CKwin.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()
@@ -179,7 +182,7 @@ if __name__ == '__main__':
 
     players, observers = parse_players(data)
 
-    #quit()
+    quit()
     print('players')
     for player in players:
         print(player)
