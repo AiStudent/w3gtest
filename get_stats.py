@@ -120,13 +120,13 @@ def parse_gamestartrecord(data, index=0):
     #index += 4 #rest stuff
     #index += 9
     random_seed = data[index:index+4]
-    print(byte_to_int(random_seed))
+    #print(byte_to_int(random_seed))
     index += 4
     select_mode = data[index]
-    print(hex(select_mode))
+    #print(hex(select_mode))
     index += 1
     start_spot_count = data[index]
-    print(hex(start_spot_count))
+    #print(hex(start_spot_count))
     index += 1
     assert data[index] == 0x1a  # start of replay data
     return slotrecords, index
