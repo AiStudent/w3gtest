@@ -1,6 +1,6 @@
 
-
 from w3gtest.get_stats import parse_players, parse_w3mmd
+
 
 class NotCompleteGame(Exception):
     def __init__(self, nr):
@@ -207,10 +207,21 @@ if __name__ == '__main__':
     
     w3mmd_data = parse_w3mmd(data)
     #print(get_dota_w3mmd_stats(data))
-    #for w3mmd in w3mmd_data:
-        #print(w3mmd)
-    #quit()
+    observers_bought = [0 for n in range(10)]
+    for w3mmd in w3mmd_data:
 
+        if w3mmd[0] == b'Data':
+            print(w3mmd)
+            if w3mmd[1][0:4] == b'PUI_':
+                val = w3mmd[1][4:].decode('utf-8')
+                val = int(val)
+                if val > 5:
+                    val -= 1
+                if w3mmd[2] == b'G50I':
+                    observers_bought[val-1] += 1
+
+    print(observers_bought)
+    quit()
     #print(count_nr_of_globals(w3mmd_data))
     globals_start, globals_end = get_globals_indexes(w3mmd_data)
     stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
@@ -235,4 +246,3 @@ if __name__ == '__main__':
     #quit()
     for player in dota_players:
         print(player.get_values())
-
