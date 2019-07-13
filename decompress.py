@@ -56,7 +56,7 @@ def decompress_block_function(data):
     return data
 
 
-def decompress(data, status_queue = None):
+def decompress(data, status = None):
     try:
         first_header = FirstHeader(data[0x1c:0x30])
 
@@ -68,8 +68,8 @@ def decompress(data, status_queue = None):
 
         while block_i < len(data):
             #print(n, ':', block_i,'/', len(data))
-            if status_queue:
-                status_queue.put((block_i, len(data)))
+            if status:
+                status.progress = (block_i, len(data))
 
             n+=1
             (
@@ -88,18 +88,16 @@ def decompress(data, status_queue = None):
 
             block_i += 8 + size_compressed
 
-        if status_queue:
-            status_queue.put((block_i, len(data)))
+        if status:
+            status.progress = (block_i, len(data))
         return decompressed_data
     except:
         raise CouldNotDecompress
 
 
 # Arguments used for threading
-def decompress_replay(data, status_queue = None, returnvalue_queue = None):
-    decompressed_data = data[:0x44] + decompress(data, status_queue)
-    if returnvalue_queue:
-        returnvalue_queue.put(decompressed_data)
+def decompress_replay(data, status = None):
+    decompressed_data = data[:0x44] + decompress(data, status)
     return decompressed_data
 
 
@@ -115,11 +113,8 @@ if __name__ == '__main__':
     first_header = FirstHeader(data[0x1c:0x30])
     sub_header = SubHeader(data[0x30:0x44])
 
-    q1 = queue.Queue()
-    qrv = queue.Queue()
 
     t0 = time.time()
-
     """
     thread1 = threading.Thread(target=decompress_replay, args=(data, q1, qrv))
     thread1.start()

@@ -182,7 +182,6 @@ if __name__ == '__main__':
 
     players, observers = parse_players(data)
 
-    quit()
     print('players')
     for player in players:
         print(player)
@@ -194,10 +193,10 @@ if __name__ == '__main__':
 
     
 
-    #w3mmd_data = parse_w3mmd(data)
-    #print("w3mmd:")
-    #for w3mmd in w3mmd_data:
+    w3mmd_data = parse_w3mmd(data)
+    print("w3mmd:")
+    for w3mmd in w3mmd_data:
         #print(w3mmd[0], end = '\t\t')
-        #print(w3mmd)
+        print(w3mmd)
         #pass
 

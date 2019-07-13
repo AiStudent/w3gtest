@@ -1,5 +1,6 @@
 
-from get_stats import parse_players, parse_w3mmd
+
+from w3gtest.get_stats import parse_players, parse_w3mmd
 
 class NotCompleteGame(Exception):
     def __init__(self, nr):
@@ -109,9 +110,9 @@ def set_dota_player_values(dota_players, w3mmd_data, start, end):
         elif key == 'id':
             player_id_end = b2i(value)
             if player_id_end < 6:
-                team = 'sentinel'
+                team = 1
             else:
-                team = 'scourge'
+                team = 2
                    
             dota_player.player_id_end = player_id_end
             dota_player.team = team
@@ -188,10 +189,12 @@ def count_nr_of_globals(w3mmd_data):
             counter += 1
     return counter
 
+
 import sys
 if __name__ == '__main__':
-    #filename = sys.argv[1]
-    filename = 'LastReplay_CKwin.txt'
+    #from get_stats import parse_players, parse_w3mmd
+    filename = sys.argv[1]
+    #filename = 'LastReplay_CKwin.txt'
     f = open(filename, mode='rb')
     data = f.read()
     f.close()
@@ -201,7 +204,6 @@ if __name__ == '__main__':
     #print(stats)
 
     #except NotCompleteGame:
-    #print("fuck it ;D ")
     
     w3mmd_data = parse_w3mmd(data)
     #print(get_dota_w3mmd_stats(data))
