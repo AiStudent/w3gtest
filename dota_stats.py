@@ -1,15 +1,22 @@
 
-from w3gtest.get_stats import parse_players, parse_w3mmd
+from w3gtest.get_stats import parse_players, parse_w3mmd, get_replay_length
 
 
 class NotCompleteGame(Exception):
     def __init__(self, nr):
         self.nr_globals = nr
 
+class NotDotaReplay(Exception):
+    def __init__(self):
+        pass
+
 class DotaPlayer:
     def __init__(self, player):
         self.name = player.name
         self.player_id = player.player_id #matters at all? will leave it out since its meaning is uncertain. The players list is ordered accordingly from blue to last player.
+        self.slot_record = player.slot_record
+        self.slot_order = player.slot_order
+
         self.kills = None
         self.deaths = None
         self.cskills = None
@@ -34,21 +41,14 @@ class DotaPlayer:
         return (
                 self.player_id,
                 self.name,
-                self.player_id_end,
+                self.slot_order,
                 self.team,
                 self.kills,
                 self.deaths,
+                self.assists,
                 self.cskills,
                 self.csdenies,
-                self.assists,
-                self.current_gold,
                 self.neutral_kills,
-                self.item1,
-                self.item2,
-                self.item3,
-                self.item4,
-                self.item5,
-                self.item6
                 )
     
     def get_values_limited(self):
@@ -63,6 +63,16 @@ class DotaPlayer:
                 self.current_gold,
                 self.neutral_kills
                 )
+
+    def get_hm(self):
+        return {
+            'kills': self.kills,
+            'deaths': self.deaths,
+            'assists': self.assists,
+            'cskills': self.cskills,
+            'csdenies': self.csdenies,
+            'slot': self.player_id,
+        }
 
 def b2i(data):
     return int.from_bytes(data, byteorder='little')
@@ -122,6 +132,26 @@ def set_dota_player_values(dota_players, w3mmd_data, start, end):
     return dota_players
 
 
+def set_dotaplayer_values_by_csv(dota_players, k, d, a, csk, csd, nk):
+    for n in range(len(dota_players)):
+        dota_player = dota_players[n]
+        dota_player.kills = k[n]
+        dota_player.deaths = d[n]
+        dota_player.assists = a[n]
+        dota_player.cskills = csk[n]
+        dota_player.csdenies = csd[n]
+        dota_player.neutral_kills = nk[n]
+        if dota_player.slot_order < 5:
+            dota_player.team = 1
+        else:
+            dota_player.team = 2
+
+def get_mode(w3mmd_data):
+    w3mmd = w3mmd_data[0]
+    if w3mmd[1][:4] == b"Mode":
+        return w3mmd[1][4:].decode('utf-8')
+
+
 def get_ending_stats_indexes(w3mmd_data, globals_start):
     
     #get global backwards, check if winner
@@ -143,12 +173,12 @@ def get_dota_w3mmd_stats(data):
     stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
 
     winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
-
+    mode = get_mode(w3mmd_data)
     players, observers = parse_players(data)
     dota_players = [DotaPlayer(player) for player in players]
     set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
     
-    return dota_players, winner, mins, secs 
+    return dota_players, winner, mins, secs, mode
     
 def dota_players_to_str_format(dota_players):
     string = ""
@@ -163,7 +193,11 @@ def dota_players_to_str_format_limited(dota_players):
     return string 
 
 def get_globals_indexes(w3mmd_data):
+    if len(w3mmd_data) == 0:
+        raise NotDotaReplay
+
     nr_globals = count_nr_of_globals(w3mmd_data)
+
     if nr_globals != 3:
         raise NotCompleteGame(nr_globals)
 
@@ -190,23 +224,7 @@ def count_nr_of_globals(w3mmd_data):
     return counter
 
 
-import sys
-if __name__ == '__main__':
-    #from get_stats import parse_players, parse_w3mmd
-    filename = sys.argv[1]
-    #filename = 'LastReplay_CKwin.txt'
-    f = open(filename, mode='rb')
-    data = f.read()
-    f.close()
-    #try: 
-    #dota_players, winner, mins, secs = get_dota_w3mmd_stats(data)
-    #stats = dota_players_to_str_format(dota_players), winner, mins, secs
-    #print(stats)
-
-    #except NotCompleteGame:
-    
-    w3mmd_data = parse_w3mmd(data)
-    #print(get_dota_w3mmd_stats(data))
+def obs_bought(w3mmd_data):
     observers_bought = [0 for n in range(10)]
     for w3mmd in w3mmd_data:
 
@@ -220,12 +238,83 @@ if __name__ == '__main__':
                 if w3mmd[2] == b'G50I':
                     observers_bought[val-1] += 1
 
-    print(observers_bought)
-    quit()
-    #print(count_nr_of_globals(w3mmd_data))
-    globals_start, globals_end = get_globals_indexes(w3mmd_data)
-    stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
-    winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
+
+def parse_incomplete_game_values(w3mmd_data):
+    k = [0 for n in range(12)]
+    d = [0 for n in range(12)]
+    a = [0 for n in range(12)]
+    csk = [0 for n in range(12)]
+    csd = [0 for n in range(12)]
+    nk = [0 for n in range(12)]
+    unparsed = []
+    saves = 0
+    for w3mmd in w3mmd_data:
+        key = w3mmd[1]
+        try:
+            if w3mmd[1][:4] == b"Hero":
+                killed = int(w3mmd[1][4:].decode('utf-8'))
+                by = b2i(w3mmd[2])
+                d[killed] += 1
+                k[by] += 1
+            elif w3mmd[1][:6] == b"Assist":
+                assist = int(w3mmd[1][6:].decode('utf-8'))
+                a[assist] += 1
+            elif w3mmd[1][:3] == b"CSK":
+                player_nr = int(w3mmd[1][3:].decode('utf-8'))
+                if player_nr == 1:
+                    saves += 1
+                csk[player_nr] = b2i(w3mmd[2])
+            elif w3mmd[1][:3] == b"CSD":
+                player_nr = int(w3mmd[1][3:].decode('utf-8'))
+                csd[player_nr] = b2i(w3mmd[2])
+            elif w3mmd[1][:2] == b"NK":
+                player_nr = int(w3mmd[1][2:].decode('utf-8'))
+                nk[player_nr] = b2i(w3mmd[2])
+            elif key[:3] in [b'PUI', b'DRI']:
+                pass
+            elif key[:5] in [b'Level']:
+                pass
+            else:
+                pass
+                # print(w3mmd)
+        except IndexError:
+            unparsed += [w3mmd]
+
+    for stats_list in [k,d,a,csk,csd,nk]:
+        del stats_list[0]
+        del stats_list[5]
+
+    return k, d, a, csk, csd, nk, saves, unparsed
+
+
+def parse_incomplete_game(data):
+    players, observers = parse_players(data)
+    dota_players = [DotaPlayer(player) for player in players]
+    w3mmd_data = parse_w3mmd(data)
+    if len(w3mmd_data) == 0:
+        raise NotDotaReplay
+    mode = get_mode(w3mmd_data)
+    k, d, a, csk, csd, nk, saves, unparsed = parse_incomplete_game_values(w3mmd_data)
+    set_dotaplayer_values_by_csv(dota_players, k, d, a, csk, csd, nk)
+    return dota_players, mode, unparsed
+
+
+import sys
+if __name__ == '__main__':
+    #from get_stats import parse_players, parse_w3mmd
+    #filename = sys.argv[1]
+    filename = 'TempReplay.txt'
+    #filename = 'latte_vs_brando_06.08.2019.txt'
+    #filename = 'one.txt'
+    f = open(filename, mode='rb')
+    data = f.read()
+    f.close()
+    #try: 
+    #dota_players, winner, mins, secs = get_dota_w3mmd_stats(data)
+    #stats = dota_players_to_str_format(dota_players), winner, mins, secs
+    #print(stats)
+
+    #except NotCompleteGame:
 
     players, observers = parse_players(data)
     print('players')
@@ -236,13 +325,35 @@ if __name__ == '__main__':
     for obs in observers:
         print(obs)
 
-    #quit()
 
-    dota_players = [DotaPlayer(player) for player in players]
-    set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
-   
-    #for w3mmd in w3mmd_data[stats_start:stats_end+1]:
-        #print(w3mmd)
-    #quit()
-    for player in dota_players:
-        print(player.get_values())
+    w3mmd_data = parse_w3mmd(data)
+
+    try:
+        raise NotCompleteGame(0)
+        globals_start, globals_end = get_globals_indexes(w3mmd_data)
+        stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
+        winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
+        dota_players = [DotaPlayer(player) for player in players]
+        set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
+        for player in dota_players:
+            print(player.get_values())
+        mode = get_mode(w3mmd_data)
+    except NotCompleteGame:
+        mode = get_mode(w3mmd_data)
+
+        k, d, a, csk, csd, nk, saves, unparsed = parse_incomplete_game_values(w3mmd_data)
+
+        def printlist(list):
+            for e in list[:-1]:
+                print(str(e).rjust(4), end=', ')
+            print(str(list[-1]).rjust(4))
+
+        printlist(k)
+        printlist(d)
+        printlist(a)
+        printlist(csk)
+        printlist(csd)
+        printlist(nk)
+        print('saves', saves)
+        print(get_replay_length(data))
+        print('unparsed:', unparsed)

@@ -1,9 +1,9 @@
 
 import sys
 
-def byte_to_int(b):
-    return int.from_bytes(b, byteorder='little')
 
+def b2i(data):
+    return int.from_bytes(data, byteorder='little')
 
 def parse_string(data, start = 0):
     index = start
@@ -16,6 +16,8 @@ def parse_string(data, start = 0):
 class PlayerRecord:
     def __init__(self, data, start = 0, customgame = True):
         self.record_id = data[start]
+        self.slot_record = None
+        self.slot_order = None
         self.player_id = data[start+1]
         self.name, size = parse_string(data, start+2)
         self.name = self.name.decode('utf-8')
@@ -36,7 +38,7 @@ class PlayerRecord:
 
     def __str__(self):
         return str((#self.record_id,
-                    self.player_id, self.name  #, hex(self.additional_data)
+                    self.player_id, self.record_id, self.name, self.slot_order
         ))
 
 def parse_players(data):
@@ -75,11 +77,17 @@ def parse_players(data):
 
     # Filtering out observers
     for slotrecord in slotrecords:
-        if slotrecord[3] == 24:
-            for player in players:
+        for player in players:
+            if player.player_id == slotrecord[0]:
+                player.slot_record = slotrecord
+
+            if slotrecord[3] == 24:
                 if player.player_id == slotrecord[0]:
                     players.remove(player)
                     observers += [player]
+
+    for n in range(len(players)):
+        players[n].slot_order = n
 
     return players, observers
 
@@ -87,7 +95,7 @@ def parse_players(data):
 def parse_gamestartrecord(data, index=0):
     assert data[index] == 0x19
     index += 1
-    length = byte_to_int(data[index:index+2])
+    length = b2i(data[index:index+2])
     index += 2
     nr_of_slotrecords = data[index]
     index += 1
@@ -171,14 +179,22 @@ def parse_civw3mmd(data, index=0):
 
     return w3mmd_data
 
+def get_replay_length(data):
+    return b2i(data[0x3C:0x3C+4])
+
 if __name__ == '__main__':
-    filename = sys.argv[1]
-    #filename = 'LastReplay_CKwin.txt'
+    #filename = sys.argv[1]
+    filename = 'latte_vs_brando_06.08.2019.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()
     
+    f = open(filename[:-3]+'log', 'w')
 
+    oldprint = print
+    def print(text=""):
+        oldprint(text, file=f)
+        oldprint(text)
 
     players, observers = parse_players(data)
 
@@ -189,14 +205,13 @@ if __name__ == '__main__':
     print('observers')
     for observer in observers:
         print(observer)
-    # parse packets preferbly
-
-    
 
     w3mmd_data = parse_w3mmd(data)
+
     print("w3mmd:")
     for w3mmd in w3mmd_data:
-        #print(w3mmd[0], end = '\t\t')
         print(w3mmd)
-        #pass
 
+    print(get_replay_length(data))
+
+    f.close()
