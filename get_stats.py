@@ -71,7 +71,7 @@ def parse_players(data):
     #GameStartRecord (ignoring)
     assert data[index] == 0x19
 
-    slotrecords, index = parse_gamestartrecord(data, index)
+    slotrecords, index, random_seed = parse_gamestartrecord(data, index)
 
     observers = []
 
@@ -137,7 +137,7 @@ def parse_gamestartrecord(data, index=0):
     #print(hex(start_spot_count))
     index += 1
     assert data[index] == 0x1a  # start of replay data
-    return slotrecords, index
+    return slotrecords, index, random_seed
 
 
 def parse_w3mmd(data, index = 0):
@@ -183,8 +183,8 @@ def get_replay_length(data):
     return b2i(data[0x3C:0x3C+4])
 
 if __name__ == '__main__':
-    #filename = sys.argv[1]
-    filename = 'latte_vs_brando_06.08.2019.txt'
+    filename = sys.argv[1]
+    #filename = 'latte_vs_brando_06.08.2019.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()
@@ -201,7 +201,6 @@ if __name__ == '__main__':
     print('players')
     for player in players:
         print(player)
-    print()
     print('observers')
     for observer in observers:
         print(observer)
@@ -210,7 +209,8 @@ if __name__ == '__main__':
 
     print("w3mmd:")
     for w3mmd in w3mmd_data:
-        print(w3mmd)
+        if w3mmd[1] in [b'Tree', b'Throne']:
+            print(w3mmd)
 
     print(get_replay_length(data))
 
