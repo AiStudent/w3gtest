@@ -312,6 +312,13 @@ def parse_command_block(data, index, command_block_length):
                 index += 4
                 unknown_b = data[index:index+4]
                 index += 4
+            elif action_id == 0x11:
+                ability_flags, index = word(data, index)
+                item_id, index = dword(data, index)
+                unknown_a, index = dword(data, index)
+                unknown_b, index = dword(data, index)
+                x_pos, index = dword(data, index)
+                y_pos, index = dword(data, index)
             elif action_id == 0x12:
                 ability_flags, index = word(data, index)
                 item_id, index = dword(data, index)
@@ -321,6 +328,28 @@ def parse_command_block(data, index, command_block_length):
                 y_pos, index = dword(data, index)
                 object1_id, index = dword(data, index)
                 object2_id, index = dword(data, index)
+            elif action_id == 0x13:
+                ability_flags, index = word(data, index)
+                item_id, index = dword(data, index)
+                unknown_a, index = dword(data, index)
+                unknown_b, index = dword(data, index)
+                y_pos, index = dword(data, index)
+                x_pos, index = dword(data, index)
+                target_object1_id, index = dword(data, index)
+                target_object2_id, index = dword(data, index)
+                item_object1_id, index = dword(data, index)
+                item_object2_id, index = dword(data, index)
+            elif action_id == 0x14:
+                ability_flags, index = word(data, index)
+                item_id_a, index = dword(data, index)
+                unknown_a, index = dword(data, index)
+                unknown_b, index = dword(data, index)
+                y_pos_a, index = dword(data, index)
+                x_pos_a, index = dword(data, index)
+                item_id_b, index = dword(data, index)
+                unknown, index = data[index:index+9], index+9
+                y_pos_b, index = dword(data, index)
+                x_pos_b, index = dword(data, index)
             elif action_id == 0x16:
                 select_mode = data[index]
                 index+=1
@@ -363,6 +392,10 @@ def parse_command_block(data, index, command_block_length):
                 unknown2 = data[index:index+4]
                 index+=4
                 printa('Unknown', end= " ")
+            elif action_id == 0x1c:
+                unknown, index = byte(data, index)
+                object1_id, index = dword(data, index)
+                object2_id, index = dword(data, index)
             elif action_id == 0x50:
                 player_slot_nr, index = byte(data, index)
                 flags, index = dword(data, index)
@@ -373,9 +406,15 @@ def parse_command_block(data, index, command_block_length):
                 index += 4
                 chat_trigger_command, size = parse_string(data, index)
                 index += size
+            elif action_id == 0x61:
+                pass #pressed esc
             elif action_id == 0x66:
                 #enter choosing hero skill submenu
                 pass
+            elif action_id == 0x68:
+                x_pos, index = dword(data, index)
+                y_pos, index = dword(data, index)
+                unknown, index = dword(data, index)
             elif data[index-1:index+5] == b'kdr.x\x00':
                 index += 5 #kdr.x\x00
                 w3mmd_type, size = parse_string(data, index)
