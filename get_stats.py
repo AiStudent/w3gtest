@@ -421,11 +421,12 @@ def parse_command_block(data, index, command_block_length):
                 index += size
                 w3mmd_key, size = parse_string(data, index)
                 index += size
+                if w3mmd_key == b'GameStart':
+                    pass
                 w3mmd_value = b2i(data[index:index+4])
                 index += 4
                 printa("w3mmd", end=" ")
             else:
-
                 print("unparsed action", end= " ")
                 quit()
             action_length_parsed += index - action_start
@@ -460,7 +461,12 @@ if __name__ == '__main__':
         print(observer)
     """
 
-
+    """
+    w3mmd_data = parse_w3mmd(data)
+    for w3mmd in w3mmd_data:
+        print(w3mmd)
+    quit()
+    """
 
     info = "go"
     n = 0
