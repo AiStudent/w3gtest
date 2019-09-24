@@ -1,25 +1,26 @@
-
 import sys
 
 
 def b2i(data):
     return int.from_bytes(data, byteorder='little')
 
-def parse_string(data, start = 0):
+
+def parse_string(data, start=0):
     index = start
     while data[index] != 0:
         index += 1
-    
+
     end = index
-    return data[start:end], end-start+1
+    return data[start:end], end - start + 1
+
 
 class PlayerRecord:
-    def __init__(self, data, start = 0, customgame = True):
+    def __init__(self, data, start=0, customgame=True):
         self.record_id = data[start]
         self.slot_record = None
         self.slot_order = None
-        self.player_id = data[start+1]
-        self.name, size = parse_string(data, start+2)
+        self.player_id = data[start + 1]
+        self.name, size = parse_string(data, start + 2)
         self.name = self.name.decode('utf-8')
         self.additional_data = data[start + 2 + size]
         self.size = 2 + size + 1 + self.additional_data
@@ -37,38 +38,38 @@ class PlayerRecord:
         """
 
     def __str__(self):
-        return str((#self.record_id,
-                    self.player_id, self.record_id, self.name, self.slot_order
+        return str((  # self.record_id,
+            self.player_id, self.record_id, self.name, self.slot_order
         ))
 
+
 def parse_players(data):
-    
     # Start up items:
     index = 0x44 + 4
-    hostplayer = PlayerRecord(data, index) 
+    hostplayer = PlayerRecord(data, index)
     index += hostplayer.size
-   
+
     gamename, size = parse_string(data, index)
     index += size
 
-    index += 1 # nullbyte
-    
+    index += 1  # nullbyte
+
     encoded_string, size = parse_string(data, index)
     index += size
 
-    index += 4 #allocating player count, only for lobby? used to be 24 for bots.
-    index += 4 #gametype
-    index += 4 #languageID
-    
-    #Player list
+    index += 4  # allocating player count, only for lobby? used to be 24 for bots.
+    index += 4  # gametype
+    index += 4  # languageID
+
+    # Player list
     players = [hostplayer]
     while data[index] == 0x16:
         player = PlayerRecord(data, index)
         index += player.size
         players += [player]
-        index += 4 # some reoccuring bytes
-   
-    #GameStartRecord (ignoring)
+        index += 4  # some reoccuring bytes
+
+    # GameStartRecord (ignoring)
     assert data[index] == 0x19
 
     slotrecords, index, random_seed = parse_gamestartrecord(data, index)
@@ -95,7 +96,7 @@ def parse_players(data):
 def parse_gamestartrecord(data, index=0):
     assert data[index] == 0x19
     index += 1
-    length = b2i(data[index:index+2])
+    length = b2i(data[index:index + 2])
     index += 2
     nr_of_slotrecords = data[index]
     index += 1
@@ -104,7 +105,7 @@ def parse_gamestartrecord(data, index=0):
     for n in range(nr_of_slotrecords):
         pid = data[index]
         index += 1
-        index += 1 #map DL status
+        index += 1  # map DL status
         slotstatus = ['empty', 'closed', 'used'][data[index]]
         index += 1
         computer_player_flag = ['human', 'computer'][data[index]]
@@ -124,23 +125,22 @@ def parse_gamestartrecord(data, index=0):
                       comp_ai_strength, player_handicap]
         slotrecords += [slotrecord]
 
-
-    #index += 4 #rest stuff
-    #index += 9
-    random_seed = data[index:index+4]
-    #print(byte_to_int(random_seed))
+    # index += 4 #rest stuff
+    # index += 9
+    random_seed = data[index:index + 4]
+    # print(byte_to_int(random_seed))
     index += 4
     select_mode = data[index]
-    #print(hex(select_mode))
+    # print(hex(select_mode))
     index += 1
     start_spot_count = data[index]
-    #print(hex(start_spot_count))
+    # print(hex(start_spot_count))
     index += 1
     assert data[index] == 0x1a  # start of replay data
     return slotrecords, index, random_seed
 
 
-def parse_w3mmd(data, index = 0):
+def parse_w3mmd(data, index=0):
     w3mmd_data = []
     while index < len(data):
         index = data.find(b'kdr.x\x00', index)
@@ -153,12 +153,13 @@ def parse_w3mmd(data, index = 0):
         index += size
         w3mmd_key, size = parse_string(data, index)
         index += size
-        w3mmd_value = data[index:index+4]
+        w3mmd_value = data[index:index + 4]
         index += 4
-       
+
         w3mmd_data += [(w3mmd_type, w3mmd_key, w3mmd_value)]
 
     return w3mmd_data
+
 
 def parse_civw3mmd(data, index=0):
     w3mmd_data = []
@@ -179,12 +180,21 @@ def parse_civw3mmd(data, index=0):
 
     return w3mmd_data
 
+
 def get_replay_length(data):
-    return b2i(data[0x3C:0x3C+4])
+    return b2i(data[0x3C:0x3C + 4])
 
 
+def parse_block2(data, index, debug_print=False, tot_time=None, save_chat=False):
+    if save_chat is False:
+        print(save_chat)
+        quit()
+    elif save_chat:
+        print(save_chat)
+        quit()
 
-def parse_block(data, index, debug_print=False):
+
+def parse_block(data, index, debug_print=False, tot_time=None, save_chat=False):
     def printdbg(*args, end="\n"):
         if debug_print:
             for ele in args:
@@ -197,54 +207,54 @@ def parse_block(data, index, debug_print=False):
     printdbg(hex(block_id), end=" ")
     index += 1
     if block_id == 0:
-        return "no block", index-1
-    elif block_id == 0x17:
-        reason = b2i(data[index:index+4])
+        return "no block", index - 1
+    elif block_id == 0x17:  # Leaver
+        reason = b2i(data[index:index + 4])
         index += 4
         player_id = data[index]
         index += 1
-        result = b2i(data[index:index+4])
+        result = b2i(data[index:index + 4])
         index += 4
-        unknown = b2i(data[index:index+4])
+        unknown = b2i(data[index:index + 4])
         index += 4
         printdbg('player', player_id, 'left')
-    elif block_id == 0x1A:
-        printdbg(data[index:index+4])
+    elif block_id == 0x1A:  # First start block
+        printdbg(data[index:index + 4])
         index += 4
-    elif block_id == 0x1B:
-        printdbg(data[index:index+4])
+    elif block_id == 0x1B:  # Second start block
+        printdbg(data[index:index + 4])
         index += 4
-    elif block_id == 0x1C:
-        printdbg(data[index:index+4])
+    elif block_id == 0x1C:  # Third start block
+        printdbg(data[index:index + 4])
         index += 4
-    elif block_id == 0x1F or block_id == 0x1E:
-        n = b2i(data[index:index+2])
+    elif block_id == 0x1F or block_id == 0x1E:  # Time slot block + possible command blocks
+        n = b2i(data[index:index + 2])
         index += 2
-        time_increment = b2i(data[index:index+2])
+        time_increment = b2i(data[index:index + 2])
         index += 2
-        command_data_block = data[index:index+n-2]
+        command_data_block = data[index:index + n - 2]
         command_start = index
-        index += n-2
+        index += n - 2
         printdbg(time_increment)
-        return time_increment, command_data_block, command_start, n-2, index
-    elif block_id == 0x20:
+        return time_increment, command_data_block, command_start, n - 2, index
+    elif block_id == 0x20:  # Player chat message
         player_id = data[index]
         index += 1
-        length = b2i(data[index:index+2])
+        length = b2i(data[index:index + 2])
         index += 2
         flags = data[index]
         index += 1
         if flags == 0x10:
             raise Exception("0x10 delayed startup screen message?")
-        chat_mode = b2i(data[index:index+4])
+        chat_mode = b2i(data[index:index + 4])
         index += 4
         msg, size = parse_string(data, index)
         index += size
         return player_id, chat_mode, msg, index
-    elif block_id == 0x22:
+    elif block_id == 0x22:  # Unknown/Checksum
         length = data[index]
         index += 1
-        unknown = data[index:index+4]
+        unknown = data[index:index + 4]
         index += 4
         printdbg("checksum")
     else:
@@ -255,20 +265,22 @@ def parse_block(data, index, debug_print=False):
 
 
 def byte(data, index):
-    return data[index], index+1
+    return data[index], index + 1
+
 
 def word(data, index):
-    return data[index:index+2], index+2
+    return data[index:index + 2], index + 2
+
 
 def dword(data, index):
-    return data[index:index+4], index+4
+    return data[index:index + 4], index + 4
 
 
-def parse_command_block(data, index, command_block_length):
-    print('command_block_start', hex(index), 'length', command_block_length)
+def parse_command_block(data, index, command_block_length, tot_time):
+    #print('command_block_start', hex(index), 'length', command_block_length)
     length_parsed = 0
     command_blocks = []
-    debug_print = True
+    debug_print = False
 
     def printa(*args, end="\n"):
         if debug_print:
@@ -280,13 +292,12 @@ def parse_command_block(data, index, command_block_length):
         command_start = index
         player_id = data[index]
         index += 1
-        action_block_length = b2i(data[index:index+2])
+        action_block_length = b2i(data[index:index + 2])
         index += 2
         action_blocks = []
-        #if data[index:index+6] == b'kdr.x\x00': #todo they are mixed sometimes
+        # if data[index:index+6] == b'kdr.x\x00': #todo they are mixed sometimes
         #    print("w3mmd_block")
         #    return
-
 
         action_length_parsed = 0
         while action_length_parsed < action_block_length:
@@ -294,23 +305,23 @@ def parse_command_block(data, index, command_block_length):
             action_start = index
             action_id = data[index]
             index += 1
-            #print(hex(command_start), 'actions player_id', player_id, 'length:', action_block_length, end=" ")
+            # print(hex(command_start), 'actions player_id', player_id, 'length:', action_block_length, end=" ")
 
-            printa(hex(action_start), hex(action_id), end= " ")
+            printa(hex(action_start), hex(action_id), end=" ")
             if action_id == 0x01:
-                printa('pause', end= " ")
+                printa('pause', end=" ")
             elif action_id == 0x02:
                 printa('resume')
             elif action_id == 0x04:
-                printa('gamespeed fast',end= " ")
+                printa('gamespeed fast', end=" ")
             elif action_id == 0x10:
-                ability_flags = data[index:index+2]
+                ability_flags = data[index:index + 2]
                 index += 2
-                item_id = data[index:index+4]
+                item_id = data[index:index + 4]
                 index += 4
-                unknown_a = data[index:index+4]
+                unknown_a = data[index:index + 4]
                 index += 4
-                unknown_b = data[index:index+4]
+                unknown_b = data[index:index + 4]
                 index += 4
             elif action_id == 0x11:
                 ability_flags, index = word(data, index)
@@ -347,27 +358,27 @@ def parse_command_block(data, index, command_block_length):
                 y_pos_a, index = dword(data, index)
                 x_pos_a, index = dword(data, index)
                 item_id_b, index = dword(data, index)
-                unknown, index = data[index:index+9], index+9
+                unknown, index = data[index:index + 9], index + 9
                 y_pos_b, index = dword(data, index)
                 x_pos_b, index = dword(data, index)
             elif action_id == 0x16:
                 select_mode = data[index]
-                index+=1
-                nr = b2i(data[index:index+2])
-                index+=2
+                index += 1
+                nr = b2i(data[index:index + 2])
+                index += 2
                 for n in range(nr):
                     object1_id = data[index:index + 4]
-                    index+=4
+                    index += 4
                     object2_id = data[index:index + 4]
                     index += 4
-                printa('select/deselect', nr, end= " ")
+                printa('select/deselect', nr, end=" ")
             elif action_id == 0x17:
                 group_nr = data[index]
-                index+=1
-                number_of_items = b2i(data[index:index+2])
+                index += 1
+                number_of_items = b2i(data[index:index + 2])
                 index += 2
                 for n in range(number_of_items):
-                    object1_id = data[index:index+4]
+                    object1_id = data[index:index + 4]
                     index += 4
                     object2_id = data[index:index + 4]
                     index += 4
@@ -375,23 +386,23 @@ def parse_command_block(data, index, command_block_length):
                 group_nr, index = byte(data, index)
                 unknown, index = byte(data, index)
             elif action_id == 0x19:
-                item_id = b2i(data[index:index+4])
+                item_id = b2i(data[index:index + 4])
                 index += 4
-                objec1_id = b2i(data[index:index+4])
+                objec1_id = b2i(data[index:index + 4])
                 index += 4
-                objec2_id = b2i(data[index:index+4])
+                objec2_id = b2i(data[index:index + 4])
                 index += 4
-                printa('select subgroup', end= " ")
+                printa('select subgroup', end=" ")
             elif action_id == 0x1a:
-                printa('pre-subselection', end= " ")
+                printa('pre-subselection', end=" ")
             elif action_id == 0x1b:
-                unknown_b = data[index] #always 0x01
-                index+=1
-                unknown1 = data[index:index+4]
-                index+=4
-                unknown2 = data[index:index+4]
-                index+=4
-                printa('Unknown', end= " ")
+                unknown_b = data[index]  # always 0x01
+                index += 1
+                unknown1 = data[index:index + 4]
+                index += 4
+                unknown2 = data[index:index + 4]
+                index += 4
+                printa('Unknown', end=" ")
             elif action_id == 0x1c:
                 unknown, index = byte(data, index)
                 object1_id, index = dword(data, index)
@@ -407,44 +418,45 @@ def parse_command_block(data, index, command_block_length):
                 chat_trigger_command, size = parse_string(data, index)
                 index += size
             elif action_id == 0x61:
-                pass #pressed esc
+                pass  # pressed esc
             elif action_id == 0x66:
-                #enter choosing hero skill submenu
+                # enter choosing hero skill submenu
                 pass
             elif action_id == 0x68:
                 x_pos, index = dword(data, index)
                 y_pos, index = dword(data, index)
                 unknown, index = dword(data, index)
-            elif data[index-1:index+5] == b'kdr.x\x00':
-                index += 5 #kdr.x\x00
+            elif data[index - 1:index + 5] == b'kdr.x\x00':
+                index += 5  # kdr.x\x00
                 w3mmd_type, size = parse_string(data, index)
                 index += size
                 w3mmd_key, size = parse_string(data, index)
                 index += size
                 if w3mmd_key == b'GameStart':
                     pass
-                w3mmd_value = b2i(data[index:index+4])
+                w3mmd_value = b2i(data[index:index + 4])
                 index += 4
                 printa("w3mmd", end=" ")
             else:
-                print("unparsed action", end= " ")
+                print("unparsed action", end=" ")
                 quit()
             action_length_parsed += index - action_start
-            printa('('+str(action_length_parsed)+'/'+str(action_block_length)+')')
+            printa('(' + str(action_length_parsed) + '/' + str(action_block_length) + ')')
 
-        length_parsed += index-command_start
-        #print('(' + str(length_parsed) + '/' + str(command_block_length) + ')')
+        length_parsed += index - command_start
+        # print('(' + str(length_parsed) + '/' + str(command_block_length) + ')')
 
 
 if __name__ == '__main__':
-    #filename = sys.argv[1]
-    #filename = 'latte_vs_brando_06.08.2019.txt'
+    # filename = sys.argv[1]
+    # filename = 'latte_vs_brando_06.08.2019.txt'
     filename = 'r1.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()
-    
-    f = open(filename[:-3]+'log', 'w')
+    #time_increment, command_data_block, command_start, command_block_length, index = parse_block(
+    #    data, 0, debug_print=False, tot_time=0, save_chat=True)    #quit()
+    # f = open(filename[:-3]+'log', 'w')
 
     players, observers, index = parse_players(data)
     """
@@ -467,28 +479,40 @@ if __name__ == '__main__':
         print(w3mmd)
     quit()
     """
+    f = open("chat.log", 'w')
+    f.write("")
+    f.close()
 
     info = "go"
     n = 0
     tot_time = 0
     while data[index] != 0:
+
         block_id = data[index]
         if block_id == 0x1F or block_id == 0x1E:
-            #print(hex(index), hex(block_id))
-            time_increment, command_data_block, command_start, command_block_length, index = parse_block(data, index, False)
-            tot_time += time_increment
+            # print(hex(index), hex(block_id))
+            time_increment, command_data_block, command_start, command_block_length, index = parse_block(
+                data, index, debug_print=False, tot_time=tot_time, save_chat=True)
             if command_block_length > 0:
-                parse_command_block(data, command_start, command_block_length)
+                parse_command_block(data, command_start, command_block_length, tot_time)
             else:
-                print(hex(index), 'empty command block')
+                #print(hex(index), 'empty command block')
+                pass
+            tot_time += time_increment
         elif block_id == 0x20:
             player_id, chat_mode, msg, index = parse_block(data, index)
+            if chat_mode < 3:
+                chat_mode = ['all','allies','obs'][chat_mode]
+            f = open("chat.log", "a")
+            #print(player_id, chat_mode, msg, file=f)
+            f.close()
         else:
-            info, index = parse_block(data, index)
+            info, index = parse_block(
+                data, index, debug_print=False, tot_time=tot_time, save_chat=True)
         n += 1
 
     print(n, "blocks parsed")
     print('end index', hex(index))
     print(tot_time)
     print(str(get_replay_length(data)))
-    f.close()
+    # f.close()

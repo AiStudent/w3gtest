@@ -13,7 +13,7 @@ class NotDotaReplay(Exception):
 class DotaPlayer:
     def __init__(self, player):
         self.name = player.name
-        self.player_id = player.player_id #matters at all? will leave it out since its meaning is uncertain. The players list is ordered accordingly from blue to last player.
+        self.player_id = player.player_id
         self.slot_record = player.slot_record
         self.slot_order = player.slot_order
 
@@ -174,7 +174,7 @@ def get_dota_w3mmd_stats(data):
 
     winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
     mode = get_mode(w3mmd_data)
-    players, observers = parse_players(data)
+    players, observers, _ = parse_players(data)
     dota_players = [DotaPlayer(player) for player in players]
     set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
     
@@ -288,7 +288,7 @@ def parse_incomplete_game_values(w3mmd_data):
 
 
 def parse_incomplete_game(data):
-    players, observers = parse_players(data)
+    players, observers, _ = parse_players(data)
     dota_players = [DotaPlayer(player) for player in players]
     w3mmd_data = parse_w3mmd(data)
     if len(w3mmd_data) == 0:
