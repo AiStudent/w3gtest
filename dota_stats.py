@@ -16,7 +16,7 @@ class DotaPlayer:
         self.player_id = player.player_id
         self.slot_record = player.slot_record
         self.slot_order = player.slot_order
-
+        self.hero = None
         self.kills = None
         self.deaths = None
         self.cskills = None
@@ -30,7 +30,6 @@ class DotaPlayer:
         self.item4 = None
         self.item5 = None
         self.item6 = None
-        self.hero = None
         self.player_id_end = None
         self.team = None 
 
@@ -104,19 +103,19 @@ def set_dota_player_values(dota_players, w3mmd_data, start, end):
         elif key == '7':
             dota_player.neutral_kills = b2i(value)
         elif key == '8_0':
-            dota_player.item1 = value
+            dota_player.item1 = None if value == b"\x00\x00\x00\x00" else value[::-1].decode('utf-8').upper()
         elif key == '8_1':
-            dota_player.item2 = value
+            dota_player.item2 = None if value == b"\x00\x00\x00\x00" else value[::-1].decode('utf-8').upper()
         elif key == '8_2':
-            dota_player.item3 = value
+            dota_player.item3 = None if value == b"\x00\x00\x00\x00" else value[::-1].decode('utf-8').upper()
         elif key == '8_3':
-            dota_player.item4 = value
+            dota_player.item4 = None if value == b"\x00\x00\x00\x00" else value[::-1].decode('utf-8').upper()
         elif key == '8_4':
-            dota_player.item5 = value
+            dota_player.item5 = None if value == b"\x00\x00\x00\x00" else value[::-1].decode('utf-8').upper()
         elif key == '8_5':
-            dota_player.item6 = value
+            dota_player.item6 = None if value == b"\x00\x00\x00\x00" else value[::-1].decode('utf-8').upper()
         elif key == '9':
-            dota_player.hero = value
+            dota_player.hero = None if value == b"\x00\x00\x00\x00" else value[::-1].decode('utf-8').upper()
         elif key == 'id':
             player_id_end = b2i(value)
             if player_id_end < 6:
@@ -303,7 +302,7 @@ import sys
 if __name__ == '__main__':
     #from get_stats import parse_players, parse_w3mmd
     #filename = sys.argv[1]
-    filename = 'TempReplay.txt'
+    filename = 'swaptest.txt'
     #filename = 'latte_vs_brando_06.08.2019.txt'
     #filename = 'one.txt'
     f = open(filename, mode='rb')
@@ -316,7 +315,7 @@ if __name__ == '__main__':
 
     #except NotCompleteGame:
 
-    players, observers = parse_players(data)
+    players, observers, index = parse_players(data)
     print('players')
     for player in players:
         print(player)
