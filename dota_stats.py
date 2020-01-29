@@ -302,7 +302,7 @@ import sys
 if __name__ == '__main__':
     #from get_stats import parse_players, parse_w3mmd
     #filename = sys.argv[1]
-    filename = 'swaptest.txt'
+    filename = 'LastReplay.txt'
     #filename = 'latte_vs_brando_06.08.2019.txt'
     #filename = 'one.txt'
     f = open(filename, mode='rb')
@@ -326,6 +326,10 @@ if __name__ == '__main__':
 
 
     w3mmd_data = parse_w3mmd(data)
+
+    for w3mmd in w3mmd_data:
+        print(w3mmd)
+    quit()
 
     try:
         raise NotCompleteGame(0)

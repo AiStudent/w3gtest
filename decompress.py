@@ -16,6 +16,12 @@ class FirstHeader:
             self.nr_of_compressed_blocks
         ) = struct.unpack('<5i', data)
 
+    def get_hm(self):
+        return {'fileoffset': self.fileoffset,
+                'compressed_size': self.compressed_size,
+                'replay_header_version': self.replay_header_version,
+                'decompressed_size': self.decompressed_size,
+                'nr_of_compressed_blocks': self.nr_of_compressed_blocks}
     
 class SubHeader:
     def __init__(self, data):
@@ -27,6 +33,15 @@ class SubHeader:
             self.replay_length_ms,
             self.header_checksum
             ) = struct.unpack('ihhii', data[4:])
+
+    def get_hm(self):
+        return {'game_str': self.game_str,
+                'version_number': self.version_number,
+                'build_number': self.build_number,
+                'flags': self.flags,
+                'replay_length_ms': self.replay_length_ms,
+                'header_checksum': self.header_checksum
+                }
 
 class Block:
     def __init__(self, data):
@@ -76,17 +91,17 @@ def decompress(data, status = None):
                 size_compressed,
                 size_decompressed,
                 unknown_checksum,
-            ) = struct.unpack('hhi', data[block_i:block_i+8])
+            ) = struct.unpack('iii', data[block_i:block_i+12])
 
             z = zlib.decompressobj()
 
-            data_block = data[block_i+8 : block_i+8+size_compressed]
+            data_block = data[block_i+12 : block_i+12+size_compressed]
             data_block = z.decompress(data_block)
 
             decompressed_data[decom_i: decom_i+len(data_block)] = data_block
             decom_i += len(data_block)
 
-            block_i += 8 + size_compressed
+            block_i += 12 + size_compressed
 
         if status:
             status.progress = (block_i, len(data))
@@ -102,7 +117,11 @@ def decompress_replay(data, status = None):
 
 
 if __name__ == '__main__':
-    name = sys.argv[1]
+    try:
+        name = sys.argv[1]
+    except IndexError:
+        name = 'Replay_2020_01_29_2105.w3g'
+
     f = open(name, "rb")
     data = f.read()
     f.close()
@@ -113,6 +132,8 @@ if __name__ == '__main__':
     first_header = FirstHeader(data[0x1c:0x30])
     sub_header = SubHeader(data[0x30:0x44])
 
+    print(first_header.get_hm())
+    print(sub_header.get_hm())
 
     t0 = time.time()
     """

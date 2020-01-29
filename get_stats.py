@@ -47,14 +47,19 @@ def parse_players(data):
     # Start up items:
     index = 0x44 + 4
     hostplayer = PlayerRecord(data, index)
+    #print(hex(index), hostplayer)
+
     index += hostplayer.size
 
+
     gamename, size = parse_string(data, index)
+    #print(hex(index), gamename)
     index += size
 
     index += 1  # nullbyte
 
     encoded_string, size = parse_string(data, index)
+    #print(hex(index), encoded_string)
     index += size
 
     index += 4  # allocating player count, only for lobby? used to be 24 for bots.
@@ -62,6 +67,7 @@ def parse_players(data):
     index += 4  # languageID
 
     # Player list
+    #print(hex(index), 'player_list')
     players = [hostplayer]
     while data[index] == 0x16:
         player = PlayerRecord(data, index)
@@ -69,8 +75,21 @@ def parse_players(data):
         players += [player]
         index += 4  # some reoccuring bytes
 
+    # Second PlayerList
+    assert data[index] == 0x39
+    index += 12  # unknown header 9.....9.....
+    while data[index] == 0x0A:
+        name_and_unknown, size = parse_string(data, index)
+        index += size
+        if data[index] == 0x28:  # (.2."
+            index += 4
+
     # GameStartRecord (ignoring)
-    assert data[index] == 0x19
+    try:
+        assert data[index] == 0x19
+    except AssertionError as e:
+        print(AssertionError,hex(index))
+        raise e
 
     slotrecords, index, random_seed = parse_gamestartrecord(data, index)
 
@@ -472,12 +491,14 @@ def secs_to_min_secs(secs):
 if __name__ == '__main__':
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
-    filename = 'r1.txt'
+    filename = 'Replay_2020_01_29_2105.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()
 
     players, observers, index = parse_players(data)
+
+    quit()
 
     f = open("chat.log", 'w')
     f.write("")
