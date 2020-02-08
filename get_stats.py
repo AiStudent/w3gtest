@@ -1,5 +1,6 @@
 import sys
 from typing import List
+from w3gtest.decompress import SubHeader
 
 def b2i(data):
     return int.from_bytes(data, byteorder='little')
@@ -45,6 +46,11 @@ class PlayerRecord:
 
 def parse_players(data):
     # Start up items:
+    sub_header = SubHeader(data[0x30:0x44])
+    if sub_header.version_number > 10031:
+        reforged = True
+    else:
+        reforged = False
     index = 0x44 + 4
     hostplayer = PlayerRecord(data, index)
     #print(hex(index), hostplayer)
@@ -75,21 +81,18 @@ def parse_players(data):
         players += [player]
         index += 4  # some reoccuring bytes
 
-    # Second PlayerList
-    assert data[index] == 0x39
-    index += 12  # unknown header 9.....9.....
-    while data[index] == 0x0A:
-        name_and_unknown, size = parse_string(data, index)
-        index += size
-        if data[index] == 0x28:  # (.2."
-            index += 4
+    if reforged:
+        # Second PlayerList
+        assert data[index] == 0x39
+        index += 12  # unknown header 9.....9.....
+        while data[index] == 0x0A:
+            name_and_unknown, size = parse_string(data, index)
+            index += size
+            if data[index] == 0x28:  # (.2."
+                index += 4
 
     # GameStartRecord (ignoring)
-    try:
-        assert data[index] == 0x19
-    except AssertionError as e:
-        print(AssertionError,hex(index))
-        raise e
+    assert data[index] == 0x19
 
     slotrecords, index, random_seed = parse_gamestartrecord(data, index)
 

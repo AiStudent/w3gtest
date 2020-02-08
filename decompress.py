@@ -74,12 +74,19 @@ def decompress_block_function(data):
 def decompress(data, status = None):
     try:
         first_header = FirstHeader(data[0x1c:0x30])
+        sub_header = SubHeader(data[0x30:0x44])
 
         decompressed_data = bytearray(first_header.decompressed_size)
         block_i = 0x44
         n = 0
 
         decom_i = 0 # decompressed data index
+        if sub_header.version_number > 10031:
+            header_len = 12
+            unpacking = 'iii'
+        else:
+            header_len = 8
+            unpacking = 'hhi'
 
         while block_i < len(data):
             #print(n, ':', block_i,'/', len(data))
@@ -87,26 +94,27 @@ def decompress(data, status = None):
                 status.progress = (block_i, len(data))
 
             n+=1
+
             (
                 size_compressed,
                 size_decompressed,
                 unknown_checksum,
-            ) = struct.unpack('iii', data[block_i:block_i+12])
+            ) = struct.unpack(unpacking, data[block_i:block_i+header_len])
 
             z = zlib.decompressobj()
 
-            data_block = data[block_i+12 : block_i+12+size_compressed]
+            data_block = data[block_i+header_len : block_i+header_len+size_compressed]
             data_block = z.decompress(data_block)
 
             decompressed_data[decom_i: decom_i+len(data_block)] = data_block
             decom_i += len(data_block)
 
-            block_i += 12 + size_compressed
+            block_i += header_len + size_compressed
 
         if status:
             status.progress = (block_i, len(data))
         return decompressed_data
-    except:
+    except Exception as e:
         raise CouldNotDecompress
 
 
@@ -120,20 +128,18 @@ if __name__ == '__main__':
     try:
         name = sys.argv[1]
     except IndexError:
-        name = 'Replay_2020_01_29_2105.w3g'
+        name = 'ricefire_vs_antbug_28.01.2020(1).w3g'
 
     f = open(name, "rb")
     data = f.read()
     f.close()
     import time
-    import queue
-    import threading
 
     first_header = FirstHeader(data[0x1c:0x30])
     sub_header = SubHeader(data[0x30:0x44])
 
-    print(first_header.get_hm())
-    print(sub_header.get_hm())
+    #print(first_header.get_hm())
+    #print(sub_header.get_hm())
 
     t0 = time.time()
     """
