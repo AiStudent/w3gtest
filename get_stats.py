@@ -86,7 +86,12 @@ def parse_players(data):
         assert data[index] == 0x39
         index += 12  # unknown header 9.....9.....
         while data[index] == 0x0A:
+            index += 6
             name_and_unknown, size = parse_string(data, index)
+            name = name_and_unknown[:name_and_unknown.find(b'\x1a')].decode('utf-8')
+            for player in players:
+                if player.name in name:
+                    player.name = name
             index += size
             if data[index] == 0x28:  # (.2."
                 index += 4
@@ -494,12 +499,15 @@ def secs_to_min_secs(secs):
 if __name__ == '__main__':
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
-    filename = 'Replay_2020_01_29_2105.txt'
+    filename = 'Sleepy_vs_souljase_1-03-2020.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()
 
     players, observers, index = parse_players(data)
+
+    for player in players:
+        print(player)
 
     quit()
 

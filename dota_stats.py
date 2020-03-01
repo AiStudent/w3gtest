@@ -302,7 +302,7 @@ import sys
 if __name__ == '__main__':
     #from get_stats import parse_players, parse_w3mmd
     #filename = sys.argv[1]
-    filename = 'LastReplay.txt'
+    filename = 'Sleepy_vs_souljase_1-03-2020.txt'
     #filename = 'latte_vs_brando_06.08.2019.txt'
     #filename = 'one.txt'
     f = open(filename, mode='rb')
@@ -324,7 +324,7 @@ if __name__ == '__main__':
     for obs in observers:
         print(obs)
 
-
+    quit()
     w3mmd_data = parse_w3mmd(data)
 
     for w3mmd in w3mmd_data:

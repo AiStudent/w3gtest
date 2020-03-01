@@ -128,7 +128,7 @@ if __name__ == '__main__':
     try:
         name = sys.argv[1]
     except IndexError:
-        name = 'ricefire_vs_antbug_28.01.2020(1).w3g'
+        name = 'Sleepy_vs_souljase_1-03-2020.w3g'
 
     f = open(name, "rb")
     data = f.read()
