@@ -83,7 +83,7 @@ def parse_players(data):
 
     if reforged:
         # Second PlayerList
-        assert data[index] == 0x39
+        assert data[index] == 0x39, 'index ' + str(hex(index)) + ' != 0x39'
         index += 12  # unknown header 9.....9.....
         while data[index] == 0x0A:
             index += 6
@@ -499,7 +499,7 @@ def secs_to_min_secs(secs):
 if __name__ == '__main__':
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
-    filename = 'Sleepy_vs_souljase_1-03-2020.txt'
+    filename = 'Replay_2021_06_30_1119.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()
@@ -508,6 +508,10 @@ if __name__ == '__main__':
 
     for player in players:
         print(player)
+
+    w3mmd = parse_w3mmd(data)
+    for w3mmd_row in w3mmd:
+        print(w3mmd_row)
 
     quit()
 

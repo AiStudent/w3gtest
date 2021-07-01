@@ -30,6 +30,7 @@ class DotaPlayer:
         self.item4 = None
         self.item5 = None
         self.item6 = None
+        self.wards = None
         self.player_id_end = None
         self.team = None 
 
@@ -48,6 +49,7 @@ class DotaPlayer:
                 self.cskills,
                 self.csdenies,
                 self.neutral_kills,
+                self.wards,
                 )
     
     def get_values_limited(self):
@@ -60,7 +62,8 @@ class DotaPlayer:
                 self.csdenies,
                 self.assists,
                 self.current_gold,
-                self.neutral_kills
+                self.neutral_kills,
+                self.wards
                 )
 
     def get_hm(self):
@@ -70,8 +73,10 @@ class DotaPlayer:
             'assists': self.assists,
             'cskills': self.cskills,
             'csdenies': self.csdenies,
+            'wards': self.wards,
             'slot': self.player_id,
         }
+
 
 def b2i(data):
     return int.from_bytes(data, byteorder='little')
@@ -116,6 +121,8 @@ def set_dota_player_values(dota_players, w3mmd_data, start, end):
             dota_player.item6 = None if value == b"\x00\x00\x00\x00" else value[::-1].decode('utf-8').upper()
         elif key == '9':
             dota_player.hero = None if value == b"\x00\x00\x00\x00" else value[::-1].decode('utf-8').upper()
+        elif key == '10':
+            dota_player.wards = b2i(value)
         elif key == 'id':
             player_id_end = b2i(value)
             if player_id_end < 6:
@@ -302,7 +309,7 @@ import sys
 if __name__ == '__main__':
     #from get_stats import parse_players, parse_w3mmd
     #filename = sys.argv[1]
-    filename = 'Sleepy_vs_souljase_1-03-2020.txt'
+    filename = 'Replay_2021_06_30_1119.txt'
     #filename = 'latte_vs_brando_06.08.2019.txt'
     #filename = 'one.txt'
     f = open(filename, mode='rb')
@@ -324,7 +331,6 @@ if __name__ == '__main__':
     for obs in observers:
         print(obs)
 
-    quit()
     w3mmd_data = parse_w3mmd(data)
 
     for w3mmd in w3mmd_data:
