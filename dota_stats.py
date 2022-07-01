@@ -126,9 +126,9 @@ def set_dota_player_values(dota_players, w3mmd_data, start, end):
         elif key == '10':
             dota_player.wards = b2i(value)
         elif key == '11':
-            dota_player.hero_damage = b2i(value)
-        elif key == '12':
             dota_player.tower_damage = b2i(value)
+        elif key == '12':
+            dota_player.hero_damage = b2i(value)
         elif key == 'id':
             player_id_end = b2i(value)
             if player_id_end < 6:
