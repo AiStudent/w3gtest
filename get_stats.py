@@ -499,7 +499,7 @@ def secs_to_min_secs(secs):
 if __name__ == '__main__':
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
-    filename = 'Replay_2021_06_30_1119.txt'
+    filename = 'r3.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()

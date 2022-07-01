@@ -31,6 +31,8 @@ class DotaPlayer:
         self.item5 = None
         self.item6 = None
         self.wards = None
+        self.hero_damage = None
+        self.tower_damage = None
         self.player_id_end = None
         self.team = None 
 
@@ -123,6 +125,10 @@ def set_dota_player_values(dota_players, w3mmd_data, start, end):
             dota_player.hero = None if value == b"\x00\x00\x00\x00" else value[::-1].decode('utf-8').upper()
         elif key == '10':
             dota_player.wards = b2i(value)
+        elif key == '11':
+            dota_player.hero_damage = b2i(value)
+        elif key == '12':
+            dota_player.tower_damage = b2i(value)
         elif key == 'id':
             player_id_end = b2i(value)
             if player_id_end < 6:
@@ -132,6 +138,7 @@ def set_dota_player_values(dota_players, w3mmd_data, start, end):
                    
             dota_player.player_id_end = player_id_end
             dota_player.team = team
+
         else:
             raise Exception("Not recognized key:", key)
 
@@ -309,7 +316,7 @@ import sys
 if __name__ == '__main__':
     #from get_stats import parse_players, parse_w3mmd
     #filename = sys.argv[1]
-    filename = 'Replay_2021_06_30_1119.txt'
+    filename = 'Replay_2022_06_30_1653.txt'
     #filename = 'latte_vs_brando_06.08.2019.txt'
     #filename = 'one.txt'
     f = open(filename, mode='rb')
