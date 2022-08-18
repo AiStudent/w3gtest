@@ -51,6 +51,7 @@ def parse_players(data):
         reforged = True
     else:
         reforged = False
+    #print('reforged', reforged)
     index = 0x44 + 4
     hostplayer = PlayerRecord(data, index)
     #print(hex(index), hostplayer)
@@ -84,19 +85,27 @@ def parse_players(data):
     if reforged:
         # Second PlayerList
         assert data[index] == 0x39, 'index ' + str(hex(index)) + ' != 0x39'
+        #print('second_playerlist', hex(index), hex(data[index]))
+
         index += 12  # unknown header 9.....9.....
         while data[index] == 0x0A:
             index += 6
             name_and_unknown, size = parse_string(data, index)
             name = name_and_unknown[:name_and_unknown.find(b'\x1a')].decode('utf-8')
+            #print(name)
             for player in players:
                 if player.name in name:
                     player.name = name
             index += size
+            #print('is 28?', hex(index), hex(data[index]))
             if data[index] == 0x28:  # (.2."
                 index += 4
+                # update 20220818, +9 bytes of which 8 empty?
+            if data[index] == 0x39:
+                index += 9
 
     # GameStartRecord (ignoring)
+    #print(hex(index), data[index])
     assert data[index] == 0x19
 
     slotrecords, index, random_seed = parse_gamestartrecord(data, index)
@@ -499,7 +508,7 @@ def secs_to_min_secs(secs):
 if __name__ == '__main__':
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
-    filename = 'r3.txt'
+    filename = 'ltd.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()
@@ -509,10 +518,11 @@ if __name__ == '__main__':
     for player in players:
         print(player)
 
+    """
     w3mmd = parse_w3mmd(data)
     for w3mmd_row in w3mmd:
         print(w3mmd_row)
-
+    """
     quit()
 
     f = open("chat.log", 'w')
