@@ -2,6 +2,8 @@ import sys
 from typing import List
 from w3gtest.decompress import SubHeader
 
+
+
 def b2i(data):
     return int.from_bytes(data, byteorder='little')
 
@@ -78,10 +80,13 @@ def parse_players(data):
     players = [hostplayer]
     while data[index] == 0x16:
         player = PlayerRecord(data, index)
+        #print(hex(index), player.name)
+
         index += player.size
         players += [player]
         index += 4  # some reoccuring bytes
 
+    #print(hex(index), 'second player list')
     if reforged:
         # Second PlayerList
         assert data[index] == 0x39, 'index ' + str(hex(index)) + ' != 0x39'
@@ -105,8 +110,9 @@ def parse_players(data):
                 index += 9
 
     # GameStartRecord (ignoring)
-    #print(hex(index), data[index])
-    assert data[index] == 0x19
+    #print(hex(index), hex(data[index]))
+
+    assert data[index] == 0x19, "Unrecognizable playerlist format"
 
     slotrecords, index, random_seed = parse_gamestartrecord(data, index)
 
@@ -508,7 +514,8 @@ def secs_to_min_secs(secs):
 if __name__ == '__main__':
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
-    filename = 'ltd.txt'
+    filename = 'e2.txt'
+    #filename = 'Replay_2022_06_30_1653.txt'
     f = open(filename, "rb")
     data = f.read()
     f.close()

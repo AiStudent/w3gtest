@@ -316,7 +316,7 @@ import sys
 if __name__ == '__main__':
     #from get_stats import parse_players, parse_w3mmd
     #filename = sys.argv[1]
-    filename = 'Replay_2022_06_30_1653.txt'
+    filename = 'lod.txt'
     #filename = 'latte_vs_brando_06.08.2019.txt'
     #filename = 'one.txt'
     f = open(filename, mode='rb')
