@@ -208,6 +208,8 @@ def get_dota_w3mmd_stats(data):
     # find index of mode
     mode_start_index = 0
     for w3mmd in w3mmd_data:
+        print(w3mmd)
+
         if b'Mode' in w3mmd[1]:
             break
         mode_start_index += 1
@@ -238,7 +240,13 @@ def get_dota_w3mmd_stats(data):
     player_hm = set_dota_player_values(player_hm, w3mmd_data, stats_start, stats_end)
     #set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
 
-    return player_hm, winner, mins, secs, mode
+    # going back to list for main
+    dota_players = []
+    for slot in player_hm.keys():
+        if player_hm[slot]:
+            dota_players.append(player_hm[slot])
+
+    return dota_players, winner, mins, secs, mode
 
 
 def dota_players_to_str_format(dota_players):
@@ -369,7 +377,7 @@ import sys
 if __name__ == '__main__':
     # from get_stats import parse_players, parse_w3mmd
     # filename = sys.argv[1]
-    filename = 'lod_redhawk1.txt'
+    filename = 'lod_redhawk3.txt'
     # filename = 'latte_vs_brando_06.08.2019.txt'
     # filename = 'one.txt'
     f = open(filename, mode='rb')
