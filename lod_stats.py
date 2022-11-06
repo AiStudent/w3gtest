@@ -227,6 +227,7 @@ def get_dota_w3mmd_stats(data):
             playerpid = w_pid - 2
 
         if playerpid < len(players):
+            players[playerpid].slot_order = dest_slot-1  # TODO testing
             playerboard_hm[dest_slot] = players[playerpid]
             player_hm[w_pid] = players[playerpid]
         else:
@@ -368,7 +369,7 @@ import sys
 if __name__ == '__main__':
     # from get_stats import parse_players, parse_w3mmd
     # filename = sys.argv[1]
-    filename = 'LastReplay.txt'
+    filename = 'lod_redhawk1.txt'
     # filename = 'latte_vs_brando_06.08.2019.txt'
     # filename = 'one.txt'
     f = open(filename, mode='rb')
@@ -448,6 +449,9 @@ if __name__ == '__main__':
         if pbslot == 11:
             print('-----', file=f)
         print(pbslot, playerboard_hm[pbslot], file=f)
+
+
+    quit()
 
 
     print('\nperhaps relevant ending w3mmd', file=f)
