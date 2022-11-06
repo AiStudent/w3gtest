@@ -1,7 +1,7 @@
 import sys
 from typing import List
 from w3gtest.decompress import SubHeader
-
+import math
 
 
 def b2i(data):
@@ -42,7 +42,7 @@ class PlayerRecord:
 
     def __str__(self):
         return str((  # self.record_id,
-            self.player_id, self.record_id, self.name, self.slot_order
+            self.player_id, self.name, self.slot_order
         ))
 
 
@@ -118,6 +118,11 @@ def parse_players(data):
 
     observers = []
 
+    # set slot order # TODO MOVED FROM BELOW FILTERING OUT
+    for n in range(len(players)):
+        players[n].slot_order = n
+
+
     # Filtering out observers
     for slotrecord in slotrecords:
         for player in players:
@@ -129,10 +134,10 @@ def parse_players(data):
                     players.remove(player)
                     observers += [player]
 
-    for n in range(len(players)):
-        players[n].slot_order = n
 
-    return players, observers, index
+
+
+    return players, observers, index, slotrecords
 
 
 def parse_gamestartrecord(data, index=0):
@@ -142,6 +147,14 @@ def parse_gamestartrecord(data, index=0):
     index += 2
     nr_of_slotrecords = data[index]
     index += 1
+
+    race_hex_hm = {
+        0: 'human',
+        1: 'orc',
+        2: 'nightelf',
+        4: 'undead',
+        8: 'random'
+    }
 
     slotrecords = []
     for n in range(nr_of_slotrecords):
@@ -156,7 +169,8 @@ def parse_gamestartrecord(data, index=0):
         index += 1
         color = data[index]
         index += 1
-        player_race = data[index]
+        race_hex = (data[index] & 0xf)
+        player_race = race_hex_hm[race_hex]
         index += 1
         comp_ai_strength = data[index]
         index += 1
@@ -510,8 +524,7 @@ def secs_to_min_secs(secs):
     return mins, secs
 
 
-
-if __name__ == '__main__':
+def test():
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
     filename = 'e2.txt'
@@ -520,7 +533,7 @@ if __name__ == '__main__':
     data = f.read()
     f.close()
 
-    players, observers, index = parse_players(data)
+    players, observers, index, slotrecords = parse_players(data)
 
     for player in players:
         print(player)
@@ -624,3 +637,8 @@ if __name__ == '__main__':
     print('end index', hex(index))
     print(tot_time)
     print(str(get_replay_length(data)))
+
+
+
+if __name__ == '__main__':
+    test()
