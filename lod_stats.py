@@ -204,11 +204,21 @@ def get_dota_w3mmd_stats(data):
     mode = get_mode(w3mmd_data)
     players, observers, index, slotrecords = parse_players(data)
 
+
+    # find index of mode
+    mode_start_index = 0
+    for w3mmd in w3mmd_data:
+        if b'Mode' in w3mmd[1]:
+            break
+        mode_start_index += 1
+
+
     # TODO untested change
     players = [DotaPlayer(player) for player in players]
     playerboard_hm = {}
     player_hm = {}
-    for w3mmd in w3mmd_data[1:21]:
+    for w3mmd in w3mmd_data[mode_start_index+1:mode_start_index+21]:
+        print(w3mmd)
         w_pid = int(w3mmd[0].decode('utf-8'))
         dest_slot = b2i(w3mmd[2])
         if w_pid < 6:
@@ -342,7 +352,7 @@ def parse_incomplete_game_values(w3mmd_data):
 
 
 def parse_incomplete_game(data):
-    players, observers, _ = parse_players(data)
+    players, observers, _, _ = parse_players(data)
     dota_players = [DotaPlayer(player) for player in players]
     w3mmd_data = parse_w3mmd(data)
     if len(w3mmd_data) == 0:
@@ -358,7 +368,7 @@ import sys
 if __name__ == '__main__':
     # from get_stats import parse_players, parse_w3mmd
     # filename = sys.argv[1]
-    filename = 'lod_redhawk2.txt'
+    filename = 'LastReplay.txt'
     # filename = 'latte_vs_brando_06.08.2019.txt'
     # filename = 'one.txt'
     f = open(filename, mode='rb')
@@ -369,8 +379,6 @@ if __name__ == '__main__':
     # stats = dota_players_to_str_format(dota_players), winner, mins, secs
     # print(stats)
 
-    print(get_dota_w3mmd_stats(data))
-    quit()
 
     # except NotCompleteGame:
     f = open('out_' + filename, 'w', encoding="utf-8")
@@ -393,14 +401,24 @@ if __name__ == '__main__':
 
     print('\nstarting w3mmd after shuffle', file=f)
 
+    # find index of mode
+    mode_start_index = 0
+    for w3mmd in w3mmd_data:
+        if b'Mode' in w3mmd[1]:
+            break
+        mode_start_index += 1
+
+    #quit()
+
     print(w3mmd_data[0], file=f)
     shuffle_pair_hm = {}
-    for w3mmd in w3mmd_data[1:21]:
+    for w3mmd in w3mmd_data[mode_start_index+1:mode_start_index+21]:
         w_pid = int(w3mmd[0].decode('utf-8'))
         dest_slot = b2i(w3mmd[2])
         print(w3mmd[0], w3mmd[1], b2i(w3mmd[2]), file=f)
         shuffle_pair_hm[w_pid] = dest_slot
 
+    #quit()
 
     # Take w3mmd 1-21
     # parse from, to
@@ -409,7 +427,7 @@ if __name__ == '__main__':
     players = [DotaPlayer(player) for player in players]
     playerboard_hm = {}
     player_hm = {}
-    for w3mmd in w3mmd_data[1:21]:
+    for w3mmd in w3mmd_data[mode_start_index+1:mode_start_index+21]:
         w_pid = int(w3mmd[0].decode('utf-8'))
         dest_slot = b2i(w3mmd[2])
         if w_pid < 6:
