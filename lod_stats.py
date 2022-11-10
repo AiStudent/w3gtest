@@ -380,10 +380,19 @@ def parse_incomplete_game(data):
     return dota_players, mode, unparsed
 
 
+def strwidthright(name: str, width, *args):  # Only for printing in the test() function
+    name = str(name)
+    string = name.ljust(width)
+    for n in range(0, len(args)-2, 2):
+        string += (str(args[n])+', ').rjust(args[n+1])
+    if len(args) > 2:
+        string += str(args[-2])
+    return string
+
 
 def test():
 
-    filename = 'lod_redhawk2.txt'
+    filename = 'LastReplay(13).txt'
 
     f = open(filename, mode='rb')
     data = f.read()
@@ -393,21 +402,24 @@ def test():
 
     players, observers, index, slotrecords = parse_players(data)
 
-    print('map slot configuration', file=f)
+    print('map slot configuration - not used for shuffle to my knowledge', file=f)
+    print('pid'.ljust(3), 'status'.rjust(6), 'player'.rjust(6), 'team'.rjust(4), 'color'.rjust(5), 'race'.rjust(6), file=f)
     for slotrecord in slotrecords:
-        print(slotrecord, file=f)
+        [pid, slotstatus, computer_player_flag,
+         team_number, color, player_race,
+         comp_ai_strength, player_handicap] = slotrecord
+        print(str(pid).rjust(3), slotstatus.rjust(6), str(computer_player_flag).rjust(6), str(team_number).rjust(4),
+              str(color).rjust(5), player_race.rjust(6), file=f)
 
-    print('\nplayers', file=f)
+    print('\nplayers as listed in the header', file=f)
     for player in players:
-        print(player, file=f)
+        print(str(player.slot_order).rjust(2), player.name, file=f)
 
     print('\nobs', file=f)
     for obs in observers:
-        print(obs, file=f)
+        print(str(obs.slot_order).rjust(2), obs.name, file=f)
 
     w3mmd_data = parse_w3mmd(data)
-
-    print('\nstarting w3mmd after shuffle', file=f)
 
     # find index of mode
     mode_start_index = 0
@@ -418,16 +430,19 @@ def test():
 
     #quit()
 
-    print(w3mmd_data[0], file=f)
+    print('\nmode:\n' + str(w3mmd_data[0][1].decode('utf-8')), file=f)  # print mode
+
     shuffle_pair_hm = {}
     for w3mmd in w3mmd_data[mode_start_index+1:mode_start_index+21]:
         w_pid = int(w3mmd[0].decode('utf-8'))
         dest_slot = b2i(w3mmd[2])
-        print(w3mmd[0], w3mmd[1], b2i(w3mmd[2]), file=f)
+        #print(w3mmd[0], w3mmd[1], b2i(w3mmd[2]), file=f)
         shuffle_pair_hm[w_pid] = dest_slot
 
     #quit()
 
+    print('\nstarting w3mmd after shuffle. If index < 6 decrease by 1, otherwise by 2 to get the player in the list above.', file=f)
+    print('from', '&', 'to', file=f)
     players = [DotaPlayer(player) for player in players]
     playerboard_hm = {}
     player_hm = {}
@@ -436,17 +451,24 @@ def test():
         dest_slot = b2i(w3mmd[2])
         if w_pid < 6:
             playerpid = w_pid - 1
+            w_pid_to_pid = str(w_pid).rjust(2) + ' - 1 = ' + str(playerpid).rjust(2) + ' ='
         else:
             playerpid = w_pid - 2
+            w_pid_to_pid = str(w_pid).rjust(2) + ' - 2 = ' + str(playerpid).rjust(2) + ' ='
+
+        print(str(w_pid).rjust(2), 'id', str(dest_slot).rjust(2), end="\t", file=f)
 
         if playerpid < len(players):
             playerboard_hm[dest_slot] = players[playerpid]
             player_hm[w_pid] = players[playerpid]
+            print(w_pid_to_pid, str(players[playerpid].name).ljust(20), '->', str(dest_slot).rjust(2), file=f)
         else:
             empty_player = DotaPlayer(None)
             empty_player.player_id = playerpid
             playerboard_hm[dest_slot] = empty_player
             player_hm[w_pid] = empty_player
+            print(w_pid_to_pid, str(empty_player.name).ljust(20), '->', str(dest_slot).rjust(2), file=f)
+
 
 
     print('\nguessed playerboard', file=f)
@@ -454,39 +476,44 @@ def test():
     for pbslot in sorted_pb_slots:
         if pbslot == 11:
             print('-----', file=f)
-        print(pbslot, playerboard_hm[pbslot], file=f)
+        print(str(pbslot).rjust(2), playerboard_hm[pbslot].name, file=f)
 
     #quit()
 
-    print('\nending shuffle w3mmd', file=f)
+    print('\nending shuffle w3mmd:', file=f)
+    shuffle_slots_same_at_end = True
     for w3mmd in w3mmd_data[21:]:
         if w3mmd[1] == b'id':
             w_pid_ending = int(w3mmd[0].decode('utf-8'))
             dest_slot_ending = b2i(w3mmd[2])
             if shuffle_pair_hm[w_pid_ending] == dest_slot_ending:
-                print(w3mmd[0], dest_slot_ending, 'same as start', file=f)
+                #print(w3mmd[0], dest_slot_ending, 'same as start', file=f)
+                pass
             else:
                 print(w3mmd[0], dest_slot_ending, 'different!', file=f)
+                shuffle_slots_same_at_end = False
 
+    if shuffle_slots_same_at_end:
+        print("shuffle slots same at end of game", file=f)
+    else:
+        print("shuffle slots DIFFERENT at end of game", file=f)
 
     globals_start, globals_end = get_globals_indexes(w3mmd_data)
     stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
 
-    print('\nw3mmd end', file=f)
-
-    for w3mmd in w3mmd_data[globals_start:globals_end+1]:
-        print(w3mmd, file=f)
-
+    print('\nw3mmd scoreboard', file=f)
 
     player_hm = set_dota_player_values(player_hm, w3mmd_data, stats_start, stats_end)
 
     for pbslot in sorted_pb_slots:
         if pbslot == 11:
             print('-----', file=f)
-        if playerboard_hm[pbslot]:
-            print(pbslot, playerboard_hm[pbslot], playerboard_hm[pbslot].get_hm(), file=f)
-        else:
-            print(pbslot, playerboard_hm[pbslot], file=f)
+
+        player = playerboard_hm[pbslot]
+
+
+        print(str(pbslot).rjust(2), strwidthright(player.name, 20, player.kills, 5, player.deaths, 5, player.assists, 5), file=f)
+
 
 
 if __name__ == '__main__':
