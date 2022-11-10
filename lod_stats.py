@@ -13,10 +13,16 @@ class NotDotaReplay(Exception):
 
 class DotaPlayer:
     def __init__(self, player):
-        self.name = player.name
-        self.player_id = player.player_id
-        self.slot_record = player.slot_record
-        self.slot_order = player.slot_order
+        if player is None:
+            self.name = None
+            self.player_id = None
+            self.slot_record = None
+            self.slot_order = None
+        else:
+            self.name = player.name
+            self.player_id = player.player_id
+            self.slot_record = player.slot_record
+            self.slot_order = player.slot_order
         self.hero = None
         self.kills = None
         self.deaths = None
@@ -229,12 +235,14 @@ def get_dota_w3mmd_stats(data):
             playerpid = w_pid - 2
 
         if playerpid < len(players):
-            players[playerpid].slot_order = dest_slot-1  # TODO testing
+            players[playerpid].slot_order = dest_slot-1  # TODO testing - don't remember why now though
             playerboard_hm[dest_slot] = players[playerpid]
             player_hm[w_pid] = players[playerpid]
         else:
-            playerboard_hm[dest_slot] = None
-            player_hm[w_pid] = None
+            empty_player = DotaPlayer(None)
+            empty_player.player_id = playerpid  # TODO extra debug printing
+            playerboard_hm[dest_slot] = empty_player
+            player_hm[w_pid] = empty_player
 
 
     player_hm = set_dota_player_values(player_hm, w3mmd_data, stats_start, stats_end)
@@ -243,7 +251,7 @@ def get_dota_w3mmd_stats(data):
     # going back to list for main
     dota_players = []
     for slot in player_hm.keys():
-        if player_hm[slot]:
+        if player_hm[slot].name:
             dota_players.append(player_hm[slot])
 
     return dota_players, winner, mins, secs, mode
@@ -372,24 +380,15 @@ def parse_incomplete_game(data):
     return dota_players, mode, unparsed
 
 
-import sys
 
-if __name__ == '__main__':
-    # from get_stats import parse_players, parse_w3mmd
-    # filename = sys.argv[1]
-    filename = 'lod_redhawk3.txt'
-    # filename = 'latte_vs_brando_06.08.2019.txt'
-    # filename = 'one.txt'
+def test():
+
+    filename = 'lod_redhawk2.txt'
+
     f = open(filename, mode='rb')
     data = f.read()
     f.close()
-    # try:
-    # dota_players, winner, mins, secs = get_dota_w3mmd_stats(data)
-    # stats = dota_players_to_str_format(dota_players), winner, mins, secs
-    # print(stats)
 
-
-    # except NotCompleteGame:
     f = open('out_' + filename, 'w', encoding="utf-8")
 
     players, observers, index, slotrecords = parse_players(data)
@@ -429,10 +428,6 @@ if __name__ == '__main__':
 
     #quit()
 
-    # Take w3mmd 1-21
-    # parse from, to
-    #print('\nguessed algorithm - ', file=f)
-
     players = [DotaPlayer(player) for player in players]
     playerboard_hm = {}
     player_hm = {}
@@ -448,8 +443,11 @@ if __name__ == '__main__':
             playerboard_hm[dest_slot] = players[playerpid]
             player_hm[w_pid] = players[playerpid]
         else:
-            playerboard_hm[dest_slot] = None
-            player_hm[w_pid] = None
+            empty_player = DotaPlayer(None)
+            empty_player.player_id = playerpid
+            playerboard_hm[dest_slot] = empty_player
+            player_hm[w_pid] = empty_player
+
 
     print('\nguessed playerboard', file=f)
     sorted_pb_slots = sorted(playerboard_hm.keys())
@@ -458,11 +456,9 @@ if __name__ == '__main__':
             print('-----', file=f)
         print(pbslot, playerboard_hm[pbslot], file=f)
 
+    #quit()
 
-    quit()
-
-
-    print('\nperhaps relevant ending w3mmd', file=f)
+    print('\nending shuffle w3mmd', file=f)
     for w3mmd in w3mmd_data[21:]:
         if w3mmd[1] == b'id':
             w_pid_ending = int(w3mmd[0].decode('utf-8'))
@@ -482,9 +478,7 @@ if __name__ == '__main__':
         print(w3mmd, file=f)
 
 
-
     player_hm = set_dota_player_values(player_hm, w3mmd_data, stats_start, stats_end)
-
 
     for pbslot in sorted_pb_slots:
         if pbslot == 11:
@@ -495,36 +489,5 @@ if __name__ == '__main__':
             print(pbslot, playerboard_hm[pbslot], file=f)
 
 
-    quit()
-
-    try:
-        raise NotCompleteGame(0)
-        globals_start, globals_end = get_globals_indexes(w3mmd_data)
-        stats_start, stats_end = get_ending_stats_indexes(w3mmd_data, globals_start)
-        winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
-        dota_players = [DotaPlayer(player) for player in players]
-        set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
-        for player in dota_players:
-            print(player.get_values())
-        mode = get_mode(w3mmd_data)
-    except NotCompleteGame:
-        mode = get_mode(w3mmd_data)
-
-        k, d, a, csk, csd, nk, saves, unparsed = parse_incomplete_game_values(w3mmd_data)
-
-
-        def printlist(list):
-            for e in list[:-1]:
-                print(str(e).rjust(4), end=', ')
-            print(str(list[-1]).rjust(4))
-
-
-        printlist(k)
-        printlist(d)
-        printlist(a)
-        printlist(csk)
-        printlist(csd)
-        printlist(nk)
-        print('saves', saves)
-        print(get_replay_length(data))
-        print('unparsed:', unparsed)
+if __name__ == '__main__':
+    test()
