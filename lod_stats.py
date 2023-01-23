@@ -235,7 +235,7 @@ def get_dota_w3mmd_stats(data):
         if current_slot == 6:
             current_slot += 1
 
-        if slotstatus == 'used' and team_number != 24:
+        if slotstatus == 'used' and team_number != 24 and computer_player_flag == 'human':
             dota_player = DotaPlayer(players[slotted_players])
             player_hm[current_slot] = dota_player
             slotted_players += 1
@@ -246,8 +246,6 @@ def get_dota_w3mmd_stats(data):
             player_hm[current_slot] = empty_player
         else:  # observers
             slotted_players += 1
-
-
 
 
     player_hm = set_dota_player_values(player_hm, w3mmd_data, stats_start, stats_end)
@@ -411,7 +409,7 @@ def strwidthright(name: str, width, *args):  # Only for printing in the test() f
 def test(filename=None):
 
     if not filename:
-        filename = 'LastReplay(12).txt'
+        filename = 'error1.txt'
 
     f = open(filename, mode='rb')
     data = f.read()
@@ -420,8 +418,23 @@ def test(filename=None):
     f = open('out_' + filename, 'w', encoding="utf-8")
 
     players, observers, index, slotrecords = parse_players(data)
+    print('\ndebug:', file=f)
+    for p in players:
+        print(p, file=f)
 
-    print('map slot configuration', file=f)
+    print('\ndebug observers:', file=f)
+    for p in observers:
+        print(p, file=f)
+
+    print('\ndebug index:', file=f)
+    print(index, file=f)
+
+    print('\ndebug slotrecords:', file=f)
+    for p in slotrecords:
+        print(p, file=f)
+
+    #quit()
+    print('\nmap slot configuration', file=f)
     print('pid'.ljust(3), 'status'.rjust(6), 'player'.rjust(6), 'team'.rjust(4), 'color'.rjust(5), 'race'.rjust(6), file=f)
 
     all_players = players + observers
@@ -436,33 +449,30 @@ def test(filename=None):
          team_number, color, player_race,
          comp_ai_strength, player_handicap] = slotrecord
 
+        player_name = None
+
         current_slot += 1
         if current_slot == 6:
             current_slot += 1
 
-        if slotstatus == 'used' and team_number != 24:
-            print(str(pid).rjust(3), slotstatus.rjust(6), str(computer_player_flag).rjust(6), str(team_number).rjust(4),
-                  str(color).rjust(5), player_race.rjust(6), "\t" + all_players[slotted_players].name, file=f)
-
+        if slotstatus == 'used' and team_number != 24 and computer_player_flag == 'human':
             dota_player = DotaPlayer(players[slotted_players])
             player_hm[current_slot] = dota_player
             slotted_players += 1
-
+            player_name = dota_player.name
         elif team_number != 24:
-            print(str(pid).rjust(3), slotstatus.rjust(6), str(computer_player_flag).rjust(6), str(team_number).rjust(4),
-                  str(color).rjust(5), player_race.rjust(6), '\tNone', file=f)
-
             empty_player = DotaPlayer(None)
             empty_player.player_id = pid
             player_hm[current_slot] = empty_player
+            player_name = empty_player.name
         else:
-            print(str(pid).rjust(3), slotstatus.rjust(6), str(computer_player_flag).rjust(6), str(team_number).rjust(4),
-                  str(color).rjust(5), player_race.rjust(6), "\t" + all_players[slotted_players].name, file=f)
             slotted_players += 1
 
 
+        print(str(pid).rjust(3), slotstatus.rjust(6), str(computer_player_flag).rjust(6), str(team_number).rjust(4),
+              str(color).rjust(5), player_race.rjust(6), "\t" + str(player_name), file=f)
 
-
+    #quit()
 
     print('\nplayers as listed in the header\noffset name', file=f)
     for player in players:
