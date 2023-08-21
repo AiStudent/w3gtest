@@ -407,9 +407,9 @@ def strwidthright(name: str, width, *args):  # Only for printing in the test() f
 
 
 def test(filename=None):
-
+    print("test:")
     if not filename:
-        filename = 'error1.txt'
+        filename = 'wolf1.txt'
 
     f = open(filename, mode='rb')
     data = f.read()
@@ -418,7 +418,7 @@ def test(filename=None):
     f = open('out_' + filename, 'w', encoding="utf-8")
 
     players, observers, index, slotrecords = parse_players(data)
-    print('\ndebug:', file=f)
+    print('\ndebug players:', file=f)
     for p in players:
         print(p, file=f)
 
