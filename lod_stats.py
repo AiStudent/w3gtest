@@ -210,6 +210,14 @@ def get_dota_w3mmd_stats(data):
     mode = get_mode(w3mmd_data)
     players, observers, index, slotrecords = parse_players(data)
 
+    def print(*args, **kwargs):  # todo removes prints
+        pass
+
+    print("lodstats.py")
+    for p in players:
+        print(p)
+    print()
+    print("mode", mode)
 
     # find index of mode
     mode_start_index = 0
@@ -218,6 +226,12 @@ def get_dota_w3mmd_stats(data):
             break
         mode_start_index += 1
 
+    # in case id is further down:
+    extra_offset = 0
+    while w3mmd_data[mode_start_index + extra_offset + 1][1] != b'id' and extra_offset < 1000:
+        extra_offset += 1
+
+    assert extra_offset < 1000, "Did not find w3mmd id"
 
     # TODO untested change
     # Bizzaro loop to map players to their slots. Slot_nr != player board slot
@@ -253,7 +267,7 @@ def get_dota_w3mmd_stats(data):
 
     # get the shuffeled player board, 1 to 20
     shuffeled_player_hm = {}
-    for w3mmd in w3mmd_data[mode_start_index+1:mode_start_index+21]:
+    for w3mmd in w3mmd_data[mode_start_index+extra_offset+1:mode_start_index+extra_offset+21]:
         w_pid = int(w3mmd[0].decode('utf-8'))
         dest_slot = b2i(w3mmd[2])
         shuffeled_player_hm[dest_slot] = player_hm[w_pid]
@@ -409,7 +423,7 @@ def strwidthright(name: str, width, *args):  # Only for printing in the test() f
 def test(filename=None):
     print("test:")
     if not filename:
-        filename = 'wolf1.txt'
+        filename = 'double308.txt'
 
     f = open(filename, mode='rb')
     data = f.read()
@@ -482,7 +496,12 @@ def test(filename=None):
     for obs in observers:
         print(str(obs.slot_order).rjust(2), obs.name, file=f)
 
+    print("\nw3mmd", file=f)
     w3mmd_data = parse_w3mmd(data)
+    for w3mmd in w3mmd_data:
+        #if w3mmd[1] == b'id':
+        #print(w3mmd, file=f)
+        pass
 
     # find index of mode
     mode_start_index = 0
@@ -490,6 +509,11 @@ def test(filename=None):
         if b'Mode' in w3mmd[1]:
             break
         mode_start_index += 1
+
+    # in case id is further down:
+    extra_offset = 0
+    while w3mmd_data[mode_start_index + extra_offset + 1][1] != b'id' and extra_offset < 1000:
+        extra_offset += 1
 
     #quit()
 
@@ -499,9 +523,12 @@ def test(filename=None):
     print('\nstarting w3mmd after shuffle copy', file=f)
     print('color to slot', file=f)
     shuffle_pair_hm = {}
-    for w3mmd in w3mmd_data[mode_start_index+1:mode_start_index+21]:
+
+
+    for w3mmd in w3mmd_data[mode_start_index+extra_offset+1:mode_start_index+extra_offset+21]:
         w_pid = int(w3mmd[0].decode('utf-8'))
         dest_slot = b2i(w3mmd[2])
+        print(w3mmd[2], dest_slot)
         print(str(w_pid).rjust(2), 'id', str(dest_slot).rjust(2), end="\t\n", file=f)
         shuffle_pair_hm[w_pid] = dest_slot
 
@@ -510,7 +537,7 @@ def test(filename=None):
     shuffeled_player_hm = {}
     print('\nstarting w3mmd after shuffle.', file=f)
     print('from', '&', 'to', file=f)
-    for w3mmd in w3mmd_data[mode_start_index+1:mode_start_index+21]:
+    for w3mmd in w3mmd_data[mode_start_index+extra_offset+1:mode_start_index+extra_offset+21]:
         w_pid = int(w3mmd[0].decode('utf-8'))
         dest_slot = b2i(w3mmd[2])
         shuffeled_player_hm[dest_slot] = player_hm[w_pid]
