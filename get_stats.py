@@ -8,13 +8,18 @@ def b2i(data):
     return int.from_bytes(data, byteorder='little')
 
 
-def parse_string(data, start=0):
+def parse_string(data, start=0, term=0x00):
     index = start
-    while data[index] != 0:
+    while data[index] != term:
         index += 1
 
     end = index
-    return data[start:end], end - start + 1
+    if term == 0:
+        size = end - start + 1  # with nullbyte
+    else:
+        size = end - start   # without nullbyte
+
+    return data[start:end], size
 
 
 class PlayerRecord:
@@ -47,6 +52,10 @@ class PlayerRecord:
 
 
 def parse_players(data):
+
+    def print(*args, **kwargs):  # todo removes prints
+        pass
+
     # Start up items:
     sub_header = SubHeader(data[0x30:0x44])
     if sub_header.version_number > 10031:
@@ -56,19 +65,21 @@ def parse_players(data):
     #print('reforged', reforged)
     index = 0x44 + 4
     hostplayer = PlayerRecord(data, index)
-    #print(hex(index), hostplayer)
+    print("first playerlist")
+    print("name pid additional_data")
+    print('"'+hostplayer.name+'"', hostplayer.player_id, hostplayer.additional_data)
 
     index += hostplayer.size
 
 
     gamename, size = parse_string(data, index)
-    #print(hex(index), gamename)
+    print(hex(index), gamename)
     index += size
 
     index += 1  # nullbyte
 
     encoded_string, size = parse_string(data, index)
-    #print(hex(index), encoded_string)
+    print(hex(index), encoded_string)
     index += size
 
     index += 4  # allocating player count, only for lobby? used to be 24 for bots.
@@ -76,17 +87,19 @@ def parse_players(data):
     index += 4  # languageID
 
     # Player list
-    #print(hex(index), 'player_list')
+    print(hex(index), 'player_list')
     players = [hostplayer]
     while data[index] == 0x16:
         player = PlayerRecord(data, index)
-        #print(hex(index), player.name)
+        print('"'+player.name+'"',  player.player_id, player.additional_data)
 
         index += player.size
         players += [player]
         index += 4  # some reoccuring bytes
 
-    #print(hex(index), 'second player list')
+    print()
+    print(hex(index), 'second player list')
+    print("0x2x pid ? name pxxx(?) 10/20/30")
     if reforged:
         # Second PlayerList
         assert data[index] == 0x39, 'index ' + str(hex(index)) + ' != 0x39'
@@ -94,13 +107,55 @@ def parse_players(data):
 
         index += 12  # unknown header 9.....9.....
         while data[index] == 0x0A:
-            index += 6
+            index += 1
+            u1 = data[index]
+            index += 1
+            assert data[index] == 0x08
+            index += 1
+            pid = data[index]
+            index += 1
+            assert data[index] == 0x12
+            index += 1
+            u3 = data[index]
+            index += 1
+
             name_and_unknown, size = parse_string(data, index)
-            name = name_and_unknown[:name_and_unknown.find(b'\x1a')].decode('utf-8')
-            #print(name)
+            name_data, size_name = parse_string(data, index, term=0x1a)
+            name = name_data.decode('utf-8')
+
+            index2 = index + size_name
+            assert data[index2:index2+7] == b"\x1a\x04\x63\x6c\x61\x6e\x22"  # ..clan"
+            index2 += 7
+
+            print(hex(u1), pid, u3, name, end=" ")
+
+            if data[index2] == 0x04:
+                # pxxx present
+                index2 += 1
+                pxxx = data[index2:index2+4].decode('utf-8')
+                index2 += 4
+                print(pxxx, end=" ")
+                # not null terminated. 3 ending bytes directly.
+            else:
+                # null terminated after clan
+                index2 += 1
+
+            # 3 ending bytes
+            assert data[index2] == 0x28
+            index2 += 1
+            u4 = data[index2]
+            index2 += 1
+            assert data[index2] == 0x32
+            index2 += 1
+            index2 += 1  # nullbyte
+            print(u4, end="")
+
+            print()
+
             for player in players:
-                if player.name in name:
+                if player.player_id == pid: #todo this may replace empty name players?
                     player.name = name
+
             index += size
             #print('is 28?', hex(index), hex(data[index]))
             if data[index] == 0x28:  # (.2."
@@ -108,6 +163,10 @@ def parse_players(data):
                 # update 20220818, +9 bytes of which 8 empty?
             if data[index] == 0x39:
                 index += 9
+            if data[index2] == 0x39:
+                index2 += 9
+
+            index = index2
 
     # GameStartRecord (ignoring)
     #print(hex(index), hex(data[index]))
@@ -527,7 +586,7 @@ def secs_to_min_secs(secs):
 def test():
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
-    filename = 'e2.txt'
+    filename = 'double308.txt'
     #filename = 'Replay_2022_06_30_1653.txt'
     f = open(filename, "rb")
     data = f.read()
@@ -535,6 +594,8 @@ def test():
 
     players, observers, index, slotrecords = parse_players(data)
 
+    print()
+    print("parsed players")
     for player in players:
         print(player)
 
