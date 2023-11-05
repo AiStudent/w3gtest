@@ -411,7 +411,7 @@ def strwidthright(name: str, width, *args):  # Only for printing in the test() f
 def test(filename=None):
 
     if not filename:
-        filename = 'LastReplay(12).txt'
+        filename = 'Replay_2023_11_04_1559.txt'
 
     f = open(filename, mode='rb')
     data = f.read()
