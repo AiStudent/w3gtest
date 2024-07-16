@@ -279,8 +279,8 @@ def get_dota_w3mmd_stats(data):
     for slot_nr in sorted_shuffeled_player_slots:
         dota_player = shuffeled_player_hm[slot_nr]
         if dota_player.name:
-            dota_player.slot_order = slot_nr  # TODO perhaps not factually correct but compensates for old bot
-            dota_players.append(dota_player)
+            dota_player.slot_order = slot_nr - 1  # TODO perhaps not factually correct but compensates for old bot
+            dota_players.append(dota_player)      # decreased by 1, as lod was giving 1..10 vs 11..20, while dota bot used 0 indexed.
 
 
     return dota_players, winner, mins, secs, mode
