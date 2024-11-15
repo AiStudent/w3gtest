@@ -128,7 +128,7 @@ if __name__ == '__main__':
     try:
         name = sys.argv[1]
     except IndexError:
-        name = 'r1.w3g'
+        name = 'r2.w3g'
 
     f = open(name, "rb")
     data = f.read()

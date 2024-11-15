@@ -301,7 +301,7 @@ def parse_incomplete_game_values(w3mmd_data):
 
 
 def parse_incomplete_game(data):
-    players, observers, _ = parse_players(data)
+    players, observers, _, _ = parse_players(data)
     dota_players = [DotaPlayer(player) for player in players]
     w3mmd_data = parse_w3mmd(data)
     if len(w3mmd_data) == 0:
@@ -316,7 +316,7 @@ import sys
 if __name__ == '__main__':
     #from get_stats import parse_players, parse_w3mmd
     #filename = sys.argv[1]
-    filename = 'r1.txt'
+    filename = 'r2.txt'
     #filename = 'latte_vs_brando_06.08.2019.txt'
     #filename = 'one.txt'
     f = open(filename, mode='rb')
