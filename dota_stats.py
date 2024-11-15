@@ -316,7 +316,7 @@ import sys
 if __name__ == '__main__':
     #from get_stats import parse_players, parse_w3mmd
     #filename = sys.argv[1]
-    filename = 'lod.txt'
+    filename = 'r1.txt'
     #filename = 'latte_vs_brando_06.08.2019.txt'
     #filename = 'one.txt'
     f = open(filename, mode='rb')
@@ -329,7 +329,7 @@ if __name__ == '__main__':
 
     #except NotCompleteGame:
 
-    players, observers, index = parse_players(data)
+    players, observers, index, slotrecords = parse_players(data)
     print('players')
     for player in players:
         print(player)
@@ -339,7 +339,6 @@ if __name__ == '__main__':
         print(obs)
 
     w3mmd_data = parse_w3mmd(data)
-
     for w3mmd in w3mmd_data:
         print(w3mmd)
     quit()

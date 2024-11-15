@@ -62,7 +62,7 @@ def parse_players(data):
         reforged = True
     else:
         reforged = False
-    #print('reforged', reforged)
+    print('reforged', reforged)
     index = 0x44 + 4
     hostplayer = PlayerRecord(data, index)
     print("first playerlist")
@@ -127,14 +127,14 @@ def parse_players(data):
             assert data[index2:index2+7] == b"\x1a\x04\x63\x6c\x61\x6e\x22"  # ..clan"
             index2 += 7
 
-            print(hex(u1), pid, u3, name, end=" ")
+            #print(hex(u1), pid, u3, name, end=" ")
 
             if data[index2] == 0x04:
                 # pxxx present
                 index2 += 1
                 pxxx = data[index2:index2+4].decode('utf-8')
                 index2 += 4
-                print(pxxx, end=" ")
+                #print(pxxx, end=" ")
                 # not null terminated. 3 ending bytes directly.
             else:
                 # null terminated after clan
@@ -148,15 +148,14 @@ def parse_players(data):
             assert data[index2] == 0x32
             index2 += 1
             index2 += 1  # nullbyte
-            print(u4, end="")
-
-            print()
+            print('u4=', u4, end="")
 
             for player in players:
                 if player.player_id == pid: #todo this may replace empty name players?
                     player.name = name
 
             index += size
+            print()
             #print('is 28?', hex(index), hex(data[index]))
             if data[index] == 0x28:  # (.2."
                 index += 4
@@ -165,13 +164,14 @@ def parse_players(data):
                 index += 9
             if data[index2] == 0x39:
                 index2 += 9
-
+            if data[index2] == 0x40:  # 20241115 addition, 0x40 00
+                index2 += 2
             index = index2
+            #print('playerlist2 player endbyte', str(hex(index)))
 
     # GameStartRecord (ignoring)
-    #print(hex(index), hex(data[index]))
 
-    assert data[index] == 0x19, "Unrecognizable playerlist format"
+    assert data[index] == 0x19, "Unrecognizable playerlist format "
 
     slotrecords, index, random_seed = parse_gamestartrecord(data, index)
 
