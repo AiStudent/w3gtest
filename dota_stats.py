@@ -188,6 +188,7 @@ def get_dota_w3mmd_stats(data):
     winner, mins, secs = get_winner_and_time(w3mmd_data, globals_start)
     mode = get_mode(w3mmd_data)
     players, observers, _, _ = parse_players(data)
+
     dota_players = [DotaPlayer(player) for player in players]
     set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
     
@@ -338,10 +339,11 @@ if __name__ == '__main__':
     for obs in observers:
         print(obs)
 
+    quit()
+
     w3mmd_data = parse_w3mmd(data)
     for w3mmd in w3mmd_data:
         print(w3mmd)
-    quit()
 
     try:
         raise NotCompleteGame(0)

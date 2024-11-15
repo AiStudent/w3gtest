@@ -177,9 +177,6 @@ def parse_players(data):
 
     observers = []
 
-    # set slot order # TODO MOVED FROM BELOW FILTERING OUT
-    for n in range(len(players)):
-        players[n].slot_order = n
 
 
     # Filtering out observers
@@ -193,7 +190,9 @@ def parse_players(data):
                     players.remove(player)
                     observers += [player]
 
-
+    # set slot order # TODO MOVED FROM BELOW (2023?), AND BACK BELOW (20241115), FILTERING OUT
+    for n in range(len(players)):
+        players[n].slot_order = n
 
 
     return players, observers, index, slotrecords
