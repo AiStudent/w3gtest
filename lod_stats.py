@@ -18,11 +18,14 @@ class DotaPlayer:
             self.player_id = None
             self.slot_record = None
             self.slot_order = None
+            self.team = None
         else:
             self.name = player.name
             self.player_id = player.player_id
             self.slot_record = player.slot_record
             self.slot_order = player.slot_order
+            self.team = None
+
         self.hero = None
         self.kills = None
         self.deaths = None
@@ -41,7 +44,6 @@ class DotaPlayer:
         self.hero_damage = None
         self.tower_damage = None
         self.player_id_end = None
-        self.team = None
 
     def __str__(self):
         return str((self.player_id, self.name))
@@ -148,7 +150,7 @@ def set_dota_player_values(player_hm, w3mmd_data, start, end):
             dota_player.hero_damage = b2i(value)
         elif key == 'id':
             player_id_end = b2i(value)
-            if player_id_end < LODTEAMSIZE+1:
+            if player_id_end < len(player_hm.keys())//2+1: # 20241115 update, team 2 now starts immediately, instead of at 11.
                 team = 1
             else:
                 team = 2
@@ -158,9 +160,6 @@ def set_dota_player_values(player_hm, w3mmd_data, start, end):
 
         else:
             raise Exception("Not recognized key:", key)
-
-
-
 
     return player_hm
 
@@ -210,14 +209,14 @@ def get_dota_w3mmd_stats(data):
     mode = get_mode(w3mmd_data)
     players, observers, index, slotrecords = parse_players(data)
 
-    def print(*args, **kwargs):  # todo removes prints
-        pass
+    #def print(*args, **kwargs):  # todo removes prints
+    #    pass
 
-    print("lodstats.py")
-    for p in players:
-        print(p)
-    print()
-    print("mode", mode)
+    #print("lodstats.py")
+    #for p in players:
+    #    print(p)
+    #print()
+    #print("mode", mode)
 
     # find index of mode
     mode_start_index = 0
@@ -263,12 +262,14 @@ def get_dota_w3mmd_stats(data):
 
 
     player_hm = set_dota_player_values(player_hm, w3mmd_data, stats_start, stats_end)
-    #set_dota_player_values(dota_players, w3mmd_data, stats_start, stats_end)
 
     # get the shuffeled player board, 1 to 20
     shuffeled_player_hm = {}
     for w3mmd in w3mmd_data[mode_start_index+extra_offset+1:mode_start_index+extra_offset+21]:
-        w_pid = int(w3mmd[0].decode('utf-8'))
+        firstEle = w3mmd[0].decode('utf-8')
+        if firstEle == 'Data':
+            break
+        w_pid = int(firstEle)
         dest_slot = b2i(w3mmd[2])
         shuffeled_player_hm[dest_slot] = player_hm[w_pid]
 
@@ -423,7 +424,7 @@ def strwidthright(name: str, width, *args):  # Only for printing in the test() f
 def test(filename=None):
     print("test:")
     if not filename:
-        filename = 'Replay_2023_11_04_1559.txt'
+        filename = 'r1.txt'
 
     f = open(filename, mode='rb')
     data = f.read()
@@ -486,7 +487,6 @@ def test(filename=None):
         print(str(pid).rjust(3), slotstatus.rjust(6), str(computer_player_flag).rjust(6), str(team_number).rjust(4),
               str(color).rjust(5), player_race.rjust(6), "\t" + str(player_name), file=f)
 
-    #quit()
 
     print('\nplayers as listed in the header\noffset name', file=f)
     for player in players:
@@ -502,6 +502,7 @@ def test(filename=None):
         #if w3mmd[1] == b'id':
         #print(w3mmd, file=f)
         pass
+    #quit()
 
     # find index of mode
     mode_start_index = 0
@@ -525,7 +526,7 @@ def test(filename=None):
     shuffle_pair_hm = {}
 
 
-    for w3mmd in w3mmd_data[mode_start_index+extra_offset+1:mode_start_index+extra_offset+21]:
+    for w3mmd in w3mmd_data[mode_start_index+extra_offset+1:mode_start_index+extra_offset+1+len(players)]:
         w_pid = int(w3mmd[0].decode('utf-8'))
         dest_slot = b2i(w3mmd[2])
         print(w3mmd[2], dest_slot)
@@ -537,7 +538,7 @@ def test(filename=None):
     shuffeled_player_hm = {}
     print('\nstarting w3mmd after shuffle.', file=f)
     print('from', '&', 'to', file=f)
-    for w3mmd in w3mmd_data[mode_start_index+extra_offset+1:mode_start_index+extra_offset+21]:
+    for w3mmd in w3mmd_data[mode_start_index+extra_offset+1:mode_start_index+extra_offset+1+len(players)]:
         w_pid = int(w3mmd[0].decode('utf-8'))
         dest_slot = b2i(w3mmd[2])
         shuffeled_player_hm[dest_slot] = player_hm[w_pid]
@@ -570,7 +571,7 @@ def test(filename=None):
     for slot_nr in sorted_shuffeled_player_slots:
         if slot_nr == 11:
             print('-----', file=f)
-        print(str(slot_nr).rjust(2), shuffeled_player_hm[slot_nr].name, file=f)
+        print(str(slot_nr).rjust(2), shuffeled_player_hm[slot_nr].name, shuffeled_player_hm[slot_nr].team, file=f)
 
     #quit()
 

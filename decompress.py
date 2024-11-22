@@ -75,19 +75,21 @@ def decompress(data, status = None):
     try:
         first_header = FirstHeader(data[0x1c:0x30])
         sub_header = SubHeader(data[0x30:0x44])
-
+        #print(sub_header.get_hm())
         decompressed_data = bytearray(first_header.decompressed_size)
         block_i = 0x44
         n = 0
 
         decom_i = 0 # decompressed data index
-        if sub_header.version_number > 10031:
+
+        if sub_header.version_number > 10031 or sub_header.version_number == 0:  # temp replay
             header_len = 12
             unpacking = 'iii'
         else:
             header_len = 8
             unpacking = 'hhi'
-
+        #print(hex(block_i))
+        #print('header_len', header_len)
         while block_i < len(data):
             #print(n, ':', block_i,'/', len(data))
             if status:
@@ -100,7 +102,7 @@ def decompress(data, status = None):
                 size_decompressed,
                 unknown_checksum,
             ) = struct.unpack(unpacking, data[block_i:block_i+header_len])
-
+            #print(hex(block_i), size_compressed, size_decompressed)
             z = zlib.decompressobj()
 
             data_block = data[block_i+header_len : block_i+header_len+size_compressed]
@@ -128,7 +130,7 @@ if __name__ == '__main__':
     try:
         name = sys.argv[1]
     except IndexError:
-        name = 'r2.w3g'
+        name = 'tr1.w3g'
 
     f = open(name, "rb")
     data = f.read()
@@ -155,8 +157,9 @@ if __name__ == '__main__':
     data = qrv.get_nowait()
     """
     data = decompress_replay(data)
-    print(first_header.compressed_size)
-    print(first_header.decompressed_size)
+    print('first header info:')
+    print('compressed size', first_header.compressed_size)
+    print('decompressed size', first_header.decompressed_size)
 
 
     t1 = time.time()

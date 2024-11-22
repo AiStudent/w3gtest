@@ -585,7 +585,7 @@ def secs_to_min_secs(secs):
 def test():
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
-    filename = 'double308.txt'
+    filename = '../test_replays/r1.w3g'
     #filename = 'Replay_2022_06_30_1653.txt'
     f = open(filename, "rb")
     data = f.read()
@@ -603,7 +603,6 @@ def test():
     for w3mmd_row in w3mmd:
         print(w3mmd_row)
     """
-    quit()
 
     f = open("chat.log", 'w')
     f.write("")
