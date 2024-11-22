@@ -58,12 +58,13 @@ def parse_players(data):
 
     # Start up items:
     sub_header = SubHeader(data[0x30:0x44])
-    if sub_header.version_number > 10031:
+    if sub_header.version_number > 10031 or sub_header.version_number == 0:  # or temp replay
         reforged = True
     else:
         reforged = False
     print('reforged', reforged)
     index = 0x44 + 4
+    print(hex(index))
     hostplayer = PlayerRecord(data, index)
     print("first playerlist")
     print("name pid additional_data")
@@ -106,6 +107,7 @@ def parse_players(data):
         #print('second_playerlist', hex(index), hex(data[index]))
 
         index += 12  # unknown header 9.....9.....
+        print('first player in second playerlist', hex(data[index]))
         while data[index] == 0x0A:
             index += 1
             u1 = data[index]
@@ -156,7 +158,7 @@ def parse_players(data):
 
             index += size
             print()
-            #print('is 28?', hex(index), hex(data[index]))
+            print('is 28?', hex(index), hex(data[index]))
             if data[index] == 0x28:  # (.2."
                 index += 4
                 # update 20220818, +9 bytes of which 8 empty?
@@ -170,7 +172,7 @@ def parse_players(data):
             #print('playerlist2 player endbyte', str(hex(index)))
 
     # GameStartRecord (ignoring)
-
+    print(hex(index))
     assert data[index] == 0x19, "Unrecognizable playerlist format "
 
     slotrecords, index, random_seed = parse_gamestartrecord(data, index)
@@ -262,11 +264,13 @@ def parse_w3mmd(data, index=0):
             break
         else:
             index += len(b'kdr.x\00')
-
-        w3mmd_type, size = parse_string(data, index)
-        index += size
-        w3mmd_key, size = parse_string(data, index)
-        index += size
+        try:
+            w3mmd_type, size = parse_string(data, index)
+            index += size
+            w3mmd_key, size = parse_string(data, index)
+            index += size
+        except IndexError:  # incomplete w3mmd
+            break
         w3mmd_value = data[index:index + 4]
         index += 4
 
@@ -585,7 +589,7 @@ def secs_to_min_secs(secs):
 def test():
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
-    filename = '../test_replays/r1.w3g'
+    filename = 'tr2.txt'
     #filename = 'Replay_2022_06_30_1653.txt'
     f = open(filename, "rb")
     data = f.read()

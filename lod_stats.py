@@ -422,9 +422,9 @@ def strwidthright(name: str, width, *args):  # Only for printing in the test() f
 
 
 def test(filename=None):
-    print("test:")
+    print("test():")
     if not filename:
-        filename = 'r1.txt'
+        filename = 'tr2.txt'
 
     f = open(filename, mode='rb')
     data = f.read()
