@@ -265,7 +265,7 @@ def get_dota_w3mmd_stats(data):
 
     # get the shuffeled player board, 1 to 20
     shuffeled_player_hm = {}
-    for w3mmd in w3mmd_data[mode_start_index+extra_offset+1:mode_start_index+extra_offset+21]:
+    for w3mmd in w3mmd_data[mode_start_index+extra_offset+1:mode_start_index+extra_offset+1+len(players)]:
         firstEle = w3mmd[0].decode('utf-8')
         if firstEle == 'Data':
             break
@@ -424,7 +424,7 @@ def strwidthright(name: str, width, *args):  # Only for printing in the test() f
 def test(filename=None):
     print("test():")
     if not filename:
-        filename = 'tr2.txt'
+        filename = 'keyError27.txt'
 
     f = open(filename, mode='rb')
     data = f.read()
@@ -571,7 +571,7 @@ def test(filename=None):
     for slot_nr in sorted_shuffeled_player_slots:
         if slot_nr == 11:
             print('-----', file=f)
-        print(str(slot_nr).rjust(2), shuffeled_player_hm[slot_nr].name, shuffeled_player_hm[slot_nr].team, file=f)
+        print(str(slot_nr).rjust(2), shuffeled_player_hm[slot_nr].name, file=f)
 
     #quit()
 
