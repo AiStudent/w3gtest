@@ -103,10 +103,10 @@ def parse_players(data):
     print("0x2x pid ? name pxxx(?) 10/20/30")
     if reforged:
         # Second PlayerList
-        assert data[index] == 0x39, 'index ' + str(hex(index)) + ' != 0x39'
+        assert data[index] == 0x38, 'index ' + str(hex(index)) + ' != 0x38'  # Changed to 38 from 39 202504.
         #print('second_playerlist', hex(index), hex(data[index]))
 
-        index += 12  # unknown header 9.....9.....
+        index += 12  # unknown header 9.....@.....
         print('first player in second playerlist', hex(data[index]))
         while data[index] == 0x0A:
             index += 1
@@ -589,7 +589,7 @@ def secs_to_min_secs(secs):
 def test():
     # filename = sys.argv[1]
     # filename = 'latte_vs_brando_06.08.2019.txt'
-    filename = 'tr2.txt'
+    filename = 'r25.txt'
     #filename = 'Replay_2022_06_30_1653.txt'
     f = open(filename, "rb")
     data = f.read()

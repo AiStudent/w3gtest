@@ -424,7 +424,7 @@ def strwidthright(name: str, width, *args):  # Only for printing in the test() f
 def test(filename=None):
     print("test():")
     if not filename:
-        filename = 'keyError27.txt'
+        filename = 'r1.txt'
 
     f = open(filename, mode='rb')
     data = f.read()
@@ -500,9 +500,9 @@ def test(filename=None):
     w3mmd_data = parse_w3mmd(data)
     for w3mmd in w3mmd_data:
         #if w3mmd[1] == b'id':
-        #print(w3mmd, file=f)
-        pass
-    #quit()
+        print(w3mmd, file=f)
+
+    quit()
 
     # find index of mode
     mode_start_index = 0

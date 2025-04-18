@@ -130,7 +130,7 @@ if __name__ == '__main__':
     try:
         name = sys.argv[1]
     except IndexError:
-        name = 'keyError27.w3g'
+        name = 'r25.w3g'
 
     f = open(name, "rb")
     data = f.read()
